@@ -16,3 +16,7 @@
 - assets/logos/icao_council_dark.png = client's transparent PNG with the navy "FOR ICAO COUNCIL" text + speed lines
   recoloured to white and the map silhouette faded to ~45% (client approved colour adjustment).
   The new light-background JPG (icao_council_lightbg.jpg) is kept for reference; it has a solid background so it can't sit on navy.
+
+## Revision 3 (client, 2026-10-14)
+> "shorten the duration again ... decrease the delay transition scene per scene, like scene between 'Title + theme' and 'Makassar · 20.10.2026 · Selasa' ... maybe max 45 second"
+- 55 s → 45 s by removing static holds only (biggest: title hold −4 s, Makassar hold −1.8 s, end card −1.7 s).

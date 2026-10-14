@@ -1,4 +1,4 @@
-# Storyboard · Opening Rakorwil 2026 (Direction B · Antarmoda) — 55 s (v2, client: "under 1 minute"), 1920×1080, 30 fps
+# Storyboard · Opening Rakorwil 2026 (Direction B · Antarmoda) — 45 s (v3, client: "max 45 second", shorter scene-to-scene gaps), 1920×1080, 30 fps
 
 Hero element: the **hub node** (Makassar · UPG/WAAA). It's born in shot 1, collects the four modal lines, anchors every
 shot, and clears away for the logo end card. The green emission curve becomes the title rule.
@@ -6,11 +6,13 @@ shot, and clears away for the logo end card. The green emission curve becomes th
 | # | Time | Shot | Camera | Key frame to verify |
 |---|---|---|---|---|
 | 1 | 0:00–0:03.4 | Grid fades in, hub node pops at centre, pulse rings; "RAKORWIL · 2026" types top-right | static, slow push | 0:04 |
-| 2 | 0:03.4–0:10.9 | Hub glides to its map position. **OTORITAS** decodes letter by letter; "BANDAR UDARA / WILAYAH V MAKASSAR" slides in beside it (reference grammar). Scatter out → **MEMPERSEMBAHKAN** assembles from scattered letters → scatters out | static | 0:10, 0:14.5 |
-| 3 | 0:10.9–0:26.2 | Keyword beats: 01 SINERGI · 02 TRANSPORTASI ANTARMODA (udara/laut/darat/rel lines draw into hub, a pulse on each arrival) · 03 PENURUNAN EMISI GRK (dotted curve falls) · 04 DI KAWASAN BANDAR UDARA (hub label) | slow drift | 0:27, 0:33 |
-| 4 | 0:26.2–0:37.6 | Title lock-up: rule draws, RAPAT KOORDINASI / WILAYAH rises, theme fades in word by word, organiser label types on | slow push 1.0→1.025 | 0:47 |
-| 5 | 0:37.6–0:44.6 | MAKASSAR rises; 20.10.2026 lands on a split-flap departure board; "SELASA, 20 OKTOBER 2026" types | static | 1:00 |
-| 6 | 0:44.6–0:55 | Lines retract, hub shrinks away; logos Kemenhub → DGCA → ICAO Council stagger in on the navy field (ICAO uses the dark-background variant), fade out | static | 1:12 |
+| 2 | 0:03.4–0:09.9 | Hub glides to its map position. **OTORITAS** decodes letter by letter; "BANDAR UDARA / WILAYAH V MAKASSAR" slides in beside it (reference grammar). Scatter out → **MEMPERSEMBAHKAN** assembles from scattered letters → scatters out | static | 0:10, 0:14.5 |
+| 3 | 0:09.9–0:23.8 | Keyword beats: 01 SINERGI · 02 TRANSPORTASI ANTARMODA (udara/laut/darat/rel lines draw into hub, a pulse on each arrival) · 03 PENURUNAN EMISI GRK (dotted curve falls) · 04 DI KAWASAN BANDAR UDARA (hub label) | slow drift | 0:27, 0:33 |
+| 4 | 0:23.8–0:31.1 | Title lock-up: rule draws, RAPAT KOORDINASI / WILAYAH rises, theme fades in word by word, organiser label types on | slow push 1.0→1.025 | 0:47 |
+| 5 | 0:31.1–0:36.2 | MAKASSAR rises; 20.10.2026 lands on a split-flap departure board; "SELASA, 20 OKTOBER 2026" types | static | 1:00 |
+| 6 | 0:36.2–0:45 | Lines retract, hub shrinks away; logos Kemenhub → DGCA → ICAO Council stagger in on the navy field (ICAO uses the dark-background variant), fade out | static | 1:12 |
 
 Audio: BGM (placeholder, licence to be confirmed) low-passed at 4 kHz + sparse SFX (≈2–3 per 10 s): decode ticks,
 whooshes on scatters, soft clicks on line arrivals, flap ticks, logo-reveal hit.
+
+v3 note: animations keep v2 speed; only static holds were removed (CUTS + warp() in the HTML). Each cut was pixel-diffed to confirm it is seamless.

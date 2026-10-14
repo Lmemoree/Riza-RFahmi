@@ -116,7 +116,7 @@
 <div id="hud"></div>
 
 <script>
-const DURATION = 55;
+const DURATION = 45;
 const $ = id => document.getElementById(id);
 const clamp = (x,a=0,b=1) => Math.min(b,Math.max(a,x));
 const P = (t,a,b) => clamp((t-a)/(b-a));                     // linear progress in [a,b]
@@ -159,6 +159,12 @@ function maskLine(span,pIn,pOut){ // pIn/pOut in [0,1]
 }
 function setOp(el,o){el.style.opacity=o;el.style.visibility=o<=0.001?'hidden':'visible'}
 
+/* ---------- v3: hold cuts (client: max 45 s, shorter gaps between scenes) ----------
+   The scene is static inside each cut (no animation running), so removing the time is seamless.
+   Times in render() stay on the 55 s v2 timeline; warp() maps output time → v2 time. */
+const CUTS=[[5.6,6.6],[11.95,12.45],[21.4,22.0],[25.1,25.4],[30.4,34.4],[37.52,37.69],[41.4,43.2],[49.4,51.08]];
+function warp(T){let t=T;for(const[a,b]of CUTS){if(t>=a)t+=b-a}return t}
+function unwarp(t){let T=t;for(const[a,b]of CUTS)T-=Math.min(Math.max(t-a,0),b-a);return T}
 /* ---------- the one render function ---------- */
 // v2 timing: 55 s total (client asked for < 1 min, tighter text-to-text gaps)
 const HUB_A={x:960,y:540}, HUB_B={x:1380,y:380};
@@ -167,10 +173,11 @@ const PULSES=[0.7,1.5,...LINE_T.map(l=>l[1]),23.3];   // hub pulse moments: birt
 const END=44.6;                                         // network clears for the end card
 function render(t){
   /* camera: gentle drift per shot */
-  let s=1;
+  // camera runs on output time so the hold cuts don't make it jump
+  const T=unwarp(t); let s=1;
   if(t<4) s=lerp(1.04,1.0,cubicIO(P(t,0,4)));
-  else if(t>=26.2&&t<37.6) s=lerp(1.0,1.025,P(t,26.2,37.6));
-  else if(t>=37.6&&t<END) s=lerp(1.025,1.0,cubicIO(P(t,37.6,38.8)));
+  else if(t>=26.2&&t<37.6) s=lerp(1.0,1.025,P(T,unwarp(26.2),unwarp(37.6)));
+  else if(t>=37.6&&t<END) s=lerp(1.025,1.0,cubicIO(P(T,unwarp(37.6),unwarp(38.8))));
   $('cam').style.transform=`scale(${s})`;
 
   setOp($('grid'), .18*expoOut(P(t,0,1.5)));
@@ -273,16 +280,16 @@ function render(t){
 function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080);$('stage').style.transform=`scale(${k})`}
 addEventListener('resize',fit);fit();
 window.__duration=DURATION;
-window.__seek=t=>{$('hud').style.display='none';render(t)};
+window.__seek=T=>{$('hud').style.display='none';render(warp(T))};
 const qs=new URLSearchParams(location.search);
 if(window.__recording||qs.has('still'))$('hud').style.display='none';
 let t0=parseFloat(qs.get('t')||'0'), playing=!window.__recording && !qs.has('still'), last=null;
 function loop(now){ if(window.__recording)return;
   if(playing){ if(last!=null)t0+= (now-last)/1000; if(t0>DURATION)t0=0; }
-  last=now; render(t0); $('hud').textContent=`${t0.toFixed(2)}s  [space] play/pause  [←/→] ±2s`; requestAnimationFrame(loop)}
+  last=now; render(warp(t0)); $('hud').textContent=`${t0.toFixed(2)}s  [space] play/pause  [←/→] ±2s`; requestAnimationFrame(loop)}
 addEventListener('keydown',e=>{if(e.code==='Space'){playing=!playing;e.preventDefault()} if(e.code==='ArrowRight')t0=Math.min(DURATION,t0+2); if(e.code==='ArrowLeft')t0=Math.max(0,t0-2)});
 function measure(){const w=$('otoritas').offsetWidth;$('oto-side').style.left=(120+w+40)+'px'}
-Promise.all([document.fonts.ready,...[...document.images].map(i=>i.decode().catch(()=>{}))]).then(()=>{otoCh.forEach((c,i)=>c.textContent='OTORITAS'[i]);measure();render(t0);window.__ready=true;requestAnimationFrame(loop)});
+Promise.all([document.fonts.ready,...[...document.images].map(i=>i.decode().catch(()=>{}))]).then(()=>{otoCh.forEach((c,i)=>c.textContent='OTORITAS'[i]);measure();render(warp(t0));window.__ready=true;requestAnimationFrame(loop)});
 </script>
 </body>
 </html>
