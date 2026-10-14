@@ -28,7 +28,7 @@
   .mask{overflow:hidden;padding:0 .04em .06em}
   .mask>span{display:block;will-change:transform}
   .ch{display:inline-block;will-change:transform,opacity}
-  #otoritas{left:150px;top:448px;font-weight:800;font-size:176px;line-height:1;letter-spacing:-.01em}
+  #otoritas{left:120px;top:452px;font-weight:800;font-size:166px;line-height:1;letter-spacing:-.01em}
   #oto-side{left:0;top:470px;display:flex;align-items:center;gap:26px}
   #oto-side .bar{width:4px;height:128px;background:var(--green);transform-origin:top}
   #oto-side .txt{font-family:"Archivo";font-stretch:100%;font-weight:600;font-size:38px;line-height:1.18;text-transform:uppercase;white-space:nowrap}
@@ -108,7 +108,7 @@
   <div id="logos" class="abs">
     <img id="lg1" src="assets/logos/kemenhub.png" style="height:236px" alt="Kementerian Perhubungan">
     <img id="lg2" src="assets/logos/dgca.png" style="height:186px" alt="DGCA Ministry of Transportation">
-    <img id="lg3" src="assets/logos/icao_council.png" style="height:186px" alt="Indonesia for ICAO Council">
+    <img id="lg3" src="assets/logos/icao_council_dark.png" style="height:232px" alt="Indonesia for ICAO Council">
   </div>
   <div id="endcap" class="abs mono"></div>
   <div id="fade" class="abs"></div>
@@ -116,7 +116,7 @@
 <div id="hud"></div>
 
 <script>
-const DURATION = 80;
+const DURATION = 55;
 const $ = id => document.getElementById(id);
 const clamp = (x,a=0,b=1) => Math.min(b,Math.max(a,x));
 const P = (t,a,b) => clamp((t-a)/(b-a));                     // linear progress in [a,b]
@@ -160,135 +160,113 @@ function maskLine(span,pIn,pOut){ // pIn/pOut in [0,1]
 function setOp(el,o){el.style.opacity=o;el.style.visibility=o<=0.001?'hidden':'visible'}
 
 /* ---------- the one render function ---------- */
+// v2 timing: 55 s total (client asked for < 1 min, tighter text-to-text gaps)
 const HUB_A={x:960,y:540}, HUB_B={x:1380,y:380};
-const PULSES=[1.2,2.4,3.6,22.6,23.95,25.3,26.6,35.4];   // hub pulse moments (shot 1 + line arrivals + hub label)
+const LINE_T=[[13.8,14.8],[14.75,15.75],[15.7,16.7],[16.65,17.65]];
+const PULSES=[0.7,1.5,...LINE_T.map(l=>l[1]),23.3];   // hub pulse moments: birth, line arrivals, hub label
+const END=44.6;                                         // network clears for the end card
 function render(t){
   /* camera: gentle drift per shot */
   let s=1;
-  if(t<6.5) s=lerp(1.04,1.0,cubicIO(P(t,0,6.5)));
-  else if(t>=39&&t<53.5) s=lerp(1.0,1.025,P(t,39,53.5));
-  else if(t>=53.5&&t<65) s=lerp(1.025,1.0,cubicIO(P(t,53.5,55)));
+  if(t<4) s=lerp(1.04,1.0,cubicIO(P(t,0,4)));
+  else if(t>=26.2&&t<37.6) s=lerp(1.0,1.025,P(t,26.2,37.6));
+  else if(t>=37.6&&t<END) s=lerp(1.025,1.0,cubicIO(P(t,37.6,38.8)));
   $('cam').style.transform=`scale(${s})`;
 
-  /* grid */
-  setOp($('grid'), .18*expoOut(P(t,0,2.2)));
+  setOp($('grid'), .18*expoOut(P(t,0,1.5)));
 
-  /* hub position: centre → map position (6.0–7.6) */
-  const hp=cubicIO(P(t,6.0,7.6));
+  /* hub: born at centre, glides to its map position (2.6–3.8), shrinks away before the end card */
+  const hp=cubicIO(P(t,2.6,3.8));
   const hx=lerp(HUB_A.x,HUB_B.x,hp), hy=lerp(HUB_A.y,HUB_B.y,hp);
-  const hubIn=backOut(P(t,1.0,1.7));
-  // end-card morph 65.0–66.8: ring/core shrink away; band grows from the hub
-  const m=P(t,65.0,66.8), me=cubicIO(m);
-  const hubOut=1-expoOut(P(t,65.0,65.6));
-  ['hubRing','hubCore'].forEach(id=>{$(id).setAttribute('cx',hx);$(id).setAttribute('cy',hy);$(id).style.transform=`scale(${hubIn*hubOut})`;$(id).style.transformOrigin=`${hx}px ${hy}px`});
-  // band: circle(68) at hub → pill → full-width band, centred y 540, h 400
-  const band=$('band');
-  if(m>0){
-    const w=lerp(68,1920+40,me), h=lerp(68,400,cubicIO(P(t,65.4,66.8)));
-    const cx=lerp(hx,960,me), cy=lerp(hy,540,me);
-    band.setAttribute('x',cx-w/2);band.setAttribute('y',cy-h/2);band.setAttribute('width',w);band.setAttribute('height',h);
-    band.setAttribute('rx',(h/2)*(1-P(t,66.2,66.8)));
-    band.style.opacity=1;
-  } else band.style.opacity=0;
+  const hubK=backOut(P(t,0.4,1.0))*(1-expoIn(P(t,END+.3,END+.9)));
+  ['hubRing','hubCore'].forEach(id=>{$(id).setAttribute('cx',hx);$(id).setAttribute('cy',hy);$(id).style.transform=`scale(${hubK})`;$(id).style.transformOrigin=`${hx}px ${hy}px`});
+  $('band').style.opacity=0;
 
   /* pulses */
   [$('pulse1'),$('pulse2')].forEach((c,i)=>{
-    let best=-1;for(const p of PULSES){if(t>=p&&t<p+1.4)best=p}
-    const alt = i===1 ? (()=>{for(const p of PULSES){if(t>=p+.35&&t<p+1.75)return p+.35}return -1})() : best;
-    if(alt<0||t>=65){c.style.opacity=0;return}
-    const q=P(t,alt,alt+1.4);
+    const off=i*.35; let at=-1; for(const p of PULSES){if(t>=p+off&&t<p+off+1.4)at=p+off}
+    if(at<0||t>=END){c.style.opacity=0;return}
+    const q=P(t,at,at+1.4);
     c.setAttribute('cx',hx);c.setAttribute('cy',hy);c.setAttribute('r',34+expoOut(q)*90);c.style.opacity=(1-q)*.55;
   });
 
   /* top labels */
-  $('topR').textContent=typeOn('Rakorwil · 2026',P(t,2.2,3.4));
-  setOp($('topR'), 1-P(t,64.6,65.2));
-  $('topL').textContent=typeOn('Kantor Otoritas Bandar Udara Wilayah V Makassar',P(t,42.0,44.0));
-  setOp($('topL'), 1-P(t,64.6,65.2));
+  const netOut=1-P(t,END,END+.5);
+  $('topR').textContent=typeOn('Rakorwil · 2026',P(t,1.0,1.8)); setOp($('topR'),netOut);
+  $('topL').textContent=typeOn('Kantor Otoritas Bandar Udara Wilayah V Makassar',P(t,28.0,29.4)); setOp($('topL'),netOut);
 
   /* ---- shot 2: OTORITAS + side text ---- */
-  const otoOn=t>=6.8&&t<13.2;
-  setOp($('otoritas'),otoOn?1:0);
-  if(otoOn){
-    const f=Math.floor(t*24);
+  const otoOn=t>=3.4&&t<8.4; setOp($('otoritas'),otoOn?1:0);
+  if(otoOn){const f=Math.floor(t*24);
     otoCh.forEach((c,i)=>{
-      const a=7.0+i*.14, settle=a+.55;
-      const pin=P(t,a,a+.25), out=P(t,12.0+otoRand[i].od,12.6+otoRand[i].od);
+      const a=3.5+i*.1, settle=a+.4;
+      const pin=P(t,a,a+.2), out=P(t,7.4+otoRand[i].od,7.9+otoRand[i].od);
       c.textContent = t<settle ? GLYPHS[(f*7+i*13)%GLYPHS.length] : 'OTORITAS'[i];
-      const o=expoOut(pin)*(1-out);
-      c.style.opacity=o;
+      c.style.opacity=expoOut(pin)*(1-out);
       c.style.transform=`translate(${otoRand[i].ox*expoIn(out)}px,${otoRand[i].oy*expoIn(out)}px)`;
       c.style.color = t<settle ? 'var(--green)' : 'var(--ink)';
-    });
-  }
-  const sideIn=P(t,8.4,9.4), sideOut=P(t,11.8,12.4);
-  setOp($('oto-side'), (t>8.3&&t<12.5)?1:0);
-  $('oto-side').querySelector('.bar').style.transform=`scaleY(${expoOut(P(t,8.3,8.9))*(1-expoIn(sideOut))})`;
-  maskLine($('oto-side').querySelector('.mask>span'),sideIn,sideOut);
-  // place side block right after the OTORITAS word
+    })}
+  const sideOut=P(t,7.2,7.7);
+  setOp($('oto-side'), (t>4.4&&t<7.8)?1:0);
+  $('oto-side').querySelector('.bar').style.transform=`scaleY(${expoOut(P(t,4.5,5.0))*(1-expoIn(sideOut))})`;
+  maskLine($('oto-side').querySelector('.mask>span'),P(t,4.6,5.4),sideOut);
 
-  /* MEMPERSEMBAHKAN: assemble from scatter 13.0–14.4, scatter out 15.6–16.4 */
-  const memOn=t>=12.9&&t<16.6; setOp($('persembahkan'),memOn?1:0);
+  /* MEMPERSEMBAHKAN: assemble from scatter, scatter out */
+  const memOn=t>=8.2&&t<11.0; setOp($('persembahkan'),memOn?1:0);
   if(memOn){const n=memCh.length;memCh.forEach((c,i)=>{
-    const r=memRand[i], pin=expoOut(P(t,13.0+r.d,13.9+r.d)), out=expoIn(P(t,15.6+r.od*.6,16.3+r.od*.6));
-    const spread=(i-(n-1)/2)*70*(1-pin);
+    const r=memRand[i], pin=expoOut(P(t,8.3+r.d,9.0+r.d)), out=expoIn(P(t,10.1+r.od*.6,10.6+r.od*.6));
     c.style.opacity=pin*(1-out);
-    c.style.transform=`translate(${spread+r.jx*(1-pin)+r.ox*out}px,${r.jy*(1-pin)+r.oy*out}px)`;
+    c.style.transform=`translate(${(i-(n-1)/2)*70*(1-pin)+r.jx*(1-pin)+r.ox*out}px,${r.jy*(1-pin)+r.oy*out}px)`;
   })}
 
   /* ---- shot 3: keyword beats ---- */
-  const beats=[['kw1','cap1',16.8,20.6],['kw2','cap2',20.6,29.0],['kw3','cap3',29.0,35.0],['kw4','cap4',35.0,39.0]];
-  beats.forEach(([kw,cap,a,b])=>{
+  [['kw1','cap1',10.9,13.4],['kw2','cap2',13.4,19.0],['kw3','cap3',19.0,23.0],['kw4','cap4',23.0,26.2]].forEach(([kw,cap,a,b])=>{
     const on=t>=a&&t<b; setOp($(kw),on?1:0);
-    setOp($(cap), on?env(t,a+.1,b,.5,.4):0);
-    if(on)[...$(kw).querySelectorAll('.mask>span')].forEach((sp,i)=>maskLine(sp,P(t,a+.2+i*.18,a+1.2+i*.18),P(t,b-.6+i*.06,b-.05)));
+    setOp($(cap), on?env(t,a+.1,b,.4,.35):0);
+    if(on)[...$(kw).querySelectorAll('.mask>span')].forEach((sp,i)=>maskLine(sp,P(t,a+.15+i*.14,a+.95+i*.14),P(t,b-.5+i*.05,b-.05)));
   });
 
-  /* modal lines draw in 21.2–26.6; retract at end 64.6–65.4 */
-  const lineT=[[21.2,22.6],[22.55,23.95],[23.9,25.3],[25.2,26.6]];
+  /* modal lines draw in, retract before the end card */
   paths.forEach((o,i)=>{
-    const [a,b]=lineT[i]; const d=cubicIO(P(t,a,b)); const r=expoIn(P(t,64.4+i*.1,65.2+i*.1));
-    o.p.style.strokeDashoffset = o.L*(1-d) ; o.p.style.opacity=d>0.001?1-r:0;
-    setOp(o.t, P(t,b-.2,b+.4)*(1-r));
+    const [a,b]=LINE_T[i]; const d=cubicIO(P(t,a,b)); const r=expoIn(P(t,END+i*.08,END+.7+i*.08));
+    o.p.style.strokeDashoffset=o.L*(1-d); o.p.style.opacity=d>0.001?1-r:0;
+    setOp(o.t, P(t,b-.2,b+.3)*(1-r));
   });
 
-  /* emission curve falls 29.4–32.0; stays as the decreasing trace */
-  $('curveClipR').setAttribute('width', 120+1080*cubicIO(P(t,29.4,32.0)));
-  setOp($('curve'), 1-P(t,64.4,65.0));
-  setOp($('t-curve'), P(t,29.6,30.4)*(1-P(t,64.4,65.0)));
-
-  /* hub label */
-  $('t-hub').textContent=typeOn('MAKASSAR · UPG / WAAA',P(t,35.4,36.8));
-  setOp($('t-hub'),1-P(t,64.4,65.0));
+  /* emission curve falls; stays as the decreasing trace */
+  $('curveClipR').setAttribute('width', 120+1080*cubicIO(P(t,19.2,21.0)));
+  setOp($('curve'), netOut);
+  setOp($('t-curve'), P(t,19.3,19.9)*netOut);
+  $('t-hub').textContent=typeOn('MAKASSAR · UPG / WAAA',P(t,23.3,24.3)); setOp($('t-hub'),netOut);
 
   /* ---- shot 4: title lock-up ---- */
-  $('rule').style.strokeDashoffset=ruleL*(1-cubicIO(P(t,39.2,40.6)))+ ruleL*expoIn(P(t,52.6,53.4))*-1;
-  setOp($('rule'), t>=39.2&&t<53.4?1:0);
-  const titleOn=t>=39.6&&t<53.6; setOp($('title'),titleOn?1:0);
-  if(titleOn)[...$('title').querySelectorAll('.mask>span')].forEach((sp,i)=>maskLine(sp,P(t,39.8+i*.45,40.9+i*.45),P(t,52.6+i*.08,53.3+i*.08)));
-  const themeOn=t>=41.6&&t<53.6; setOp($('theme'),themeOn?1:0);
-  if(themeOn)themeW.forEach((w,i)=>{const p=expoOut(P(t,41.8+i*.14,42.5+i*.14)),o=P(t,52.4,53.0);w.style.opacity=p*(1-o);w.style.transform=`translateY(${(1-p)*18}px)`});
+  $('rule').style.strokeDashoffset=ruleL*(1-cubicIO(P(t,26.3,27.2)))-ruleL*expoIn(P(t,36.8,37.5));
+  setOp($('rule'), t>=26.3&&t<37.5?1:0);
+  const titleOn=t>=26.4&&t<37.6; setOp($('title'),titleOn?1:0);
+  if(titleOn)[...$('title').querySelectorAll('.mask>span')].forEach((sp,i)=>maskLine(sp,P(t,26.5+i*.3,27.4+i*.3),P(t,36.8+i*.06,37.4+i*.06)));
+  const themeOn=t>=27.5&&t<37.6; setOp($('theme'),themeOn?1:0);
+  if(themeOn)themeW.forEach((w,i)=>{const p=expoOut(P(t,27.6+i*.09,28.2+i*.09)),o=P(t,36.6,37.1);w.style.opacity=p*(1-o);w.style.transform=`translateY(${(1-p)*18}px)`});
 
   /* ---- shot 5: place & time ---- */
-  const mksOn=t>=53.8&&t<65.2; setOp($('mks'),mksOn?1:0);
-  if(mksOn)maskLine($('mks').querySelector('.mask>span'),P(t,54.0,55.1),P(t,64.2,64.9));
-  const flapOn=t>=54.8&&t<65.2; setOp($('flap'),flapOn?1:0);
+  const mksOn=t>=37.7&&t<END+.2; setOp($('mks'),mksOn?1:0);
+  if(mksOn)maskLine($('mks').querySelector('.mask>span'),P(t,37.8,38.7),P(t,44.1,44.7));
+  const flapOn=t>=38.4&&t<END+.2; setOp($('flap'),flapOn?1:0);
   if(flapOn){const f=Math.floor(t*18);flapCells.forEach((c,i)=>{
-    const ch=FLAP[i], a=55.0+i*.12, land=a+1.0+i*.08;
-    const pin=expoOut(P(t,a,a+.3)), out=P(t,64.2+i*.03,64.8+i*.03);
-    c.style.opacity=pin*(1-out); c.style.transform=`translateY(${(1-pin)*20 - expoIn(out)*30}px)`;
+    const ch=FLAP[i], a=38.5+i*.08, land=a+.8+i*.05;
+    const pin=expoOut(P(t,a,a+.3)), out=P(t,44.1+i*.03,44.6+i*.03);
+    c.style.opacity=pin*(1-out); c.style.transform=`translateY(${(1-pin)*20-expoIn(out)*30}px)`;
     if(ch!=='.') c.textContent = t<land ? String((f+i*3)%10) : ch;
   })}
-  $('hari').textContent=typeOn('Selasa, 20 Oktober 2026',P(t,57.4,58.8));
-  setOp($('hari'), t<64.2?1:1-P(t,64.2,64.8));
+  $('hari').textContent=typeOn('Selasa, 20 Oktober 2026',P(t,40.2,41.2));
+  setOp($('hari'), 1-P(t,44.1,44.6));
 
-  /* ---- shot 6: end card ---- */
-  ['lg1','lg2','lg3'].forEach((id,i)=>{const a=66.7+i*.45;const p=expoOut(P(t,a,a+.9));
+  /* ---- shot 6: end card — logos on the navy field, left to right ---- */
+  ['lg1','lg2','lg3'].forEach((id,i)=>{const a=45.8+i*.4;const p=expoOut(P(t,a,a+.8));
     $(id).style.opacity=p; $(id).style.transform=`translateY(${(1-p)*28}px) scale(${.94+.06*p})`;});
-  setOp($('logos'), t>=66.6?1:0);
-  $('endcap').textContent=typeOn('Kantor Otoritas Bandar Udara Wilayah V Makassar  ·  Rakorwil 2026',P(t,68.4,70.2));
-  setOp($('endcap'), t>=68.3?1:0);
-  setOp($('fade'), Math.max(1-expoOut(P(t,0,.8)), cubicIO(P(t,77.4,80))));
+  setOp($('logos'), t>=45.7?1:0);
+  $('endcap').textContent=typeOn('Kantor Otoritas Bandar Udara Wilayah V Makassar  ·  Rakorwil 2026',P(t,47.4,48.8));
+  setOp($('endcap'), t>=47.3?1:0);
+  setOp($('fade'), Math.max(1-expoOut(P(t,0,.6)), cubicIO(P(t,52.8,55))));
 }
 
 /* ---------- scale-to-fit for preview, playback & recorder hooks ---------- */
@@ -303,7 +281,7 @@ function loop(now){ if(window.__recording)return;
   if(playing){ if(last!=null)t0+= (now-last)/1000; if(t0>DURATION)t0=0; }
   last=now; render(t0); $('hud').textContent=`${t0.toFixed(2)}s  [space] play/pause  [←/→] ±2s`; requestAnimationFrame(loop)}
 addEventListener('keydown',e=>{if(e.code==='Space'){playing=!playing;e.preventDefault()} if(e.code==='ArrowRight')t0=Math.min(DURATION,t0+2); if(e.code==='ArrowLeft')t0=Math.max(0,t0-2)});
-function measure(){const w=$('otoritas').offsetWidth;$('oto-side').style.left=(150+w+40)+'px'}
+function measure(){const w=$('otoritas').offsetWidth;$('oto-side').style.left=(120+w+40)+'px'}
 Promise.all([document.fonts.ready,...[...document.images].map(i=>i.decode().catch(()=>{}))]).then(()=>{otoCh.forEach((c,i)=>c.textContent='OTORITAS'[i]);measure();render(t0);window.__ready=true;requestAnimationFrame(loop)});
 </script>
 </body>
