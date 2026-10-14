@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bumper RAN GRK</title>
+<link rel="stylesheet" href="../otban-rakorwil-opening/assets/fonts/fonts.css">
+<link rel="stylesheet" href="common.css">
+<!--
+  Bumper 1 · PROGRAM RAN GRK DI SEKTOR TRANSPORTASI UDARA — Direction A "Flight Path", 8 s seamless loop.
+  Loop: plane takes off from the Makassar marker and flies the arc off-screen (0.3–6.4 s), leaving a green dotted contrail whose dots
+  fade with age (emissions ↓). By 8 s the sky is empty again = same state as 0 s → invisible loop point.
+  UPG marker pulses on a 4 s period (divides 8). Title never moves: it's a backdrop behind live speakers.
+-->
+<style>
+  #kick{left:120px;top:560px;color:var(--green)}
+  #title{left:112px;top:596px;font-size:104px}
+  #sub{left:120px;top:830px}
+  #top{left:120px;top:84px}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+  <div class="grid"></div>
+  <svg id="sky" width="1920" height="1080" viewBox="0 0 1920 1080" fill="none">
+    <path id="route" d="M120 420 Q 1080 -80 2240 600" stroke="rgba(244,246,251,.22)" stroke-width="2" stroke-dasharray="2 10"/>
+    <g id="trail"></g>
+    <circle id="upgPulse" cx="120" cy="420" r="9" stroke="var(--ink)" stroke-width="2"/>
+    <circle cx="120" cy="420" r="9" stroke="var(--ink)" stroke-width="4" fill="var(--navy)"/>
+    <text x="120" y="466" class="lbl" text-anchor="middle">MAKASSAR · UPG</text>
+    <g id="plane"><g class="plane" transform="scale(1.35)"><rect x="-46" y="-4.5" width="94" height="9" rx="4.5"/><polygon points="8,-4 -8,-40 -16,-40 -10,-4"/><polygon points="8,4 -8,40 -16,40 -10,4"/><polygon points="-34,-4 -42,-18 -48,-18 -44,-4"/><polygon points="-34,4 -42,18 -48,18 -44,4"/></g></g>
+  </svg>
+  <div id="top" class="mono">Rakorwil 2026 · Otoritas Bandar Udara Wilayah V Makassar</div>
+  <div id="kick" class="mono">Program</div>
+  <h1 id="title">RAN GRK di Sektor<br><span class="g">Transportasi Udara</span></h1>
+  <div id="sub" class="mono">Rencana Aksi Nasional Penurunan Emisi Gas Rumah Kaca</div>
+</div></div>
+<script>
+const LOOP=8;
+const route=document.getElementById('route'), RL=route.getTotalLength();
+const FLY=[0.3,6.4];          // plane takes off from the UPG marker, exits right
+const SPACING=16, AGE=1.6;    // contrail dot spacing (px along path) and fade-out time (s)
+const NDOTS=Math.ceil(RL/SPACING);
+const trail=document.getElementById('trail');
+const dots=[...Array(NDOTS)].map((_,i)=>{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  const p=route.getPointAtLength(i*SPACING);c.setAttribute('cx',p.x);c.setAttribute('cy',p.y);c.setAttribute('r',2.6);c.setAttribute('fill','var(--green)');trail.appendChild(c);return c});
+const ease=p=>.6*p+.4*p*p;   // take-off: moves off the marker at once, then accelerates
+const sAt=t=>RL*ease(Math.min(1,Math.max(0,(t-FLY[0])/(FLY[1]-FLY[0]))));
+// time at which the plane passed arc-length s (inverse of sAt, by bisection)
+function tAt(s){let a=FLY[0],b=FLY[1];for(let i=0;i<30;i++){const m=(a+b)/2;if(sAt(m)<s)a=m;else b=m}return (a+b)/2}
+const dotTime=dots.map((_,i)=>tAt(i*SPACING));
+window.render=function(t){
+  const s=sAt(t), flying=t>FLY[0]&&t<FLY[1];
+  const p=route.getPointAtLength(Math.min(RL,s)), q=route.getPointAtLength(Math.min(RL,s+1));
+  const ang=Math.atan2(q.y-p.y,q.x-p.x)*180/Math.PI;
+  const pl=document.getElementById('plane');
+  pl.setAttribute('transform',`translate(${p.x},${p.y}) rotate(${ang})`); pl.style.opacity=flying?Math.min(1,(t-FLY[0])/.35):0;   // fades up on take-off
+  dots.forEach((d,i)=>{const age=t-dotTime[i]; const o=(age>0.04&&age<AGE)?(1-age/AGE)*.95:0; d.style.opacity=o});
+  const ph=(t%4)/4; const pu=document.getElementById('upgPulse');
+  pu.setAttribute('r',9+ph*46); pu.style.opacity=(1-ph)*.5;
+};
+</script>
+<script src="loop-runtime.js"></script>
+</body>
+</html>

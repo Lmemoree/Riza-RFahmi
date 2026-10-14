@@ -1,0 +1,12 @@
+:root{--navy:#1F3375;--ink:#F4F6FB;--mute:#9FB0E0;--grid:rgba(244,246,251,.28);--green:#7BE0A1;
+      --air:#8FD3FF;--sea:#4FB3A6;--road:#F2C14E;--rail:#E8794A}
+html,body{margin:0;height:100%;background:#000;overflow:hidden}
+#viewport{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--navy);color:var(--ink);font-family:"Plus Jakarta Sans",sans-serif;flex:none;transform-origin:center}
+.grid{position:absolute;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:120px 120px;opacity:.18}
+svg{position:absolute;inset:0;overflow:visible}
+.plane{fill:var(--ink)}
+.lbl{font:500 15px "JetBrains Mono";fill:var(--mute);letter-spacing:.12em}
+.mono{position:absolute;font:500 15px "JetBrains Mono";letter-spacing:.16em;color:var(--mute);text-transform:uppercase;white-space:nowrap}
+h1{position:absolute;margin:0;font-family:Archivo;font-stretch:118%;font-weight:800;line-height:.98;letter-spacing:-.012em;text-transform:uppercase;white-space:nowrap}
+h1 .g{color:var(--green)}

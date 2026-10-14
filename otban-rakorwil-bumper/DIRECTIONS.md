@@ -1,6 +1,6 @@
 # Bumper (background looper) · Rakorwil 2026 — direction boards
 
-Status: **WAITING FOR CLIENT CHOICE.** Frames show bumper 1 (PROGRAM RAN GRK DI SEKTOR TRANSPORTASI UDARA);
+Status: **A chosen** (see direction-approved.md). Outputs: Bumper-1-RAN-GRK-loop-8s.mp4, Bumper-2-Antarmoda-loop-8s.mp4
 bumper 2 (SINERGI TRANSPORTASI ANTARMODA) will use the same system.
 
 | | Direction | Frame | Loop motion (planned) |

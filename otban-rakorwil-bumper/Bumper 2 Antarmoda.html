@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bumper Antarmoda</title>
+<link rel="stylesheet" href="../otban-rakorwil-opening/assets/fonts/fonts.css">
+<link rel="stylesheet" href="common.css">
+<!--
+  Bumper 2 · SINERGI TRANSPORTASI ANTARMODA — Direction A "Flight Path", 8 s seamless loop.
+  The opening video's network: udara / laut / darat / rel lines converge on the Makassar hub.
+  Traffic flows into the hub forever: planes ride the UDARA line, dots ride the others.
+  Speed = spacing/2 per second → every unit advances exactly 4 spacings in 8 s, so t=8 ≡ t=0.
+  Hub pulses every 2 s (divides 8). Title is static.
+-->
+<style>
+  #top{left:120px;top:84px}
+  #kick{left:120px;top:560px;color:var(--green)}
+  #title{left:112px;top:596px;font-size:104px}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+  <div class="grid"></div>
+  <svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path id="l-air"  d="M1920 150 H1700 L1500 350 H1380" stroke="var(--air)"  stroke-width="10"/>
+    <path id="l-sea"  d="M1920 300 H1760 L1620 440 H1380" stroke="var(--sea)"  stroke-width="10"/>
+    <path id="l-road" d="M1200 0 V200 L1380 380"           stroke="var(--road)" stroke-width="10"/>
+    <path id="l-rail" d="M1920 520 H1640 L1520 400 H1380" stroke="var(--rail)" stroke-width="10"/>
+    <text x="1890" y="138" class="lbl" text-anchor="end">UDARA</text>
+    <text x="1890" y="288" class="lbl" text-anchor="end">LAUT</text>
+    <text x="1216" y="40"  class="lbl">DARAT</text>
+    <text x="1890" y="508" class="lbl" text-anchor="end">REL</text>
+    <g id="traffic"></g>
+    <circle id="p1" cx="1380" cy="380" r="34" stroke="var(--ink)" stroke-width="2"/>
+    <circle cx="1380" cy="380" r="34" fill="var(--navy)" stroke="var(--ink)" stroke-width="8"/>
+    <circle cx="1380" cy="380" r="12" fill="var(--ink)"/>
+    <text x="1300" y="452" class="lbl" text-anchor="end">MAKASSAR · UPG / WAAA</text>
+  </svg>
+  <div id="top" class="mono">Rakorwil 2026 · Otoritas Bandar Udara Wilayah V Makassar</div>
+  <div id="kick" class="mono">Sinergi</div>
+  <h1 id="title">Transportasi<br><span class="g">Antarmoda</span></h1>
+</div></div>
+<script>
+const LOOP=8, NS='http://www.w3.org/2000/svg';
+const PLANE='<g class="plane"><rect x="-46" y="-4.5" width="94" height="9" rx="4.5"/><polygon points="8,-4 -8,-40 -16,-40 -10,-4"/><polygon points="8,4 -8,40 -16,40 -10,4"/><polygon points="-34,-4 -42,-18 -48,-18 -44,-4"/><polygon points="-34,4 -42,18 -48,18 -44,4"/></g>';
+const traffic=document.getElementById('traffic');
+// spacing per line (px). Speed = spacing*4/LOOP so each unit moves exactly 4 spacings per loop.
+const LINES=[{id:'l-air',gap:220,plane:true},{id:'l-sea',gap:150},{id:'l-road',gap:150},{id:'l-rail',gap:150}].map(o=>{
+  const path=document.getElementById(o.id), L=path.getTotalLength(), n=Math.ceil(L/o.gap)+1;
+  const units=[...Array(n)].map(()=>{const g=document.createElementNS(NS,'g');
+    g.innerHTML=o.plane?`<g transform="scale(.36)">${PLANE}</g>`:'<circle r="7" fill="var(--ink)"/>';traffic.appendChild(g);return g});
+  return {...o,path,L,n,units};
+});
+window.render=function(t){
+  LINES.forEach(o=>{
+    const off=(t/LOOP)*4*o.gap;
+    o.units.forEach((u,j)=>{
+      const s=((j*o.gap+off)%(o.n*o.gap));
+      if(s>o.L){u.style.opacity=0;return}
+      const p=o.path.getPointAtLength(s), q=o.path.getPointAtLength(Math.min(o.L,s+1)), q0=o.path.getPointAtLength(Math.max(0,s-1));
+      const ang=Math.atan2(q.y-q0.y,q.x-q0.x)*180/Math.PI;
+      u.setAttribute('transform',`translate(${p.x},${p.y}) rotate(${ang})`);
+      // fade out as it reaches the hub (absorbed), fade in at the screen edge
+      u.style.opacity=Math.min(1,(o.L-s)/60,s/40);
+    });
+  });
+  const ph=(t%2)/2, p1=document.getElementById('p1');
+  p1.setAttribute('r',34+ph*80); p1.style.opacity=(1-ph)*.5;
+};
+</script>
+<script src="loop-runtime.js"></script>
+</body>
+</html>
