@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Opening Rakorwil 2026</title>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<!--
+  Opening video · Rakorwil 2026 · Kantor Otoritas Bandar Udara Wilayah V Makassar
+  Direction B "Antarmoda" (approved). Storyboard: STORYBOARD.md.
+  Everything is a pure function of time: render(t). The recorder calls window.__seek(t) per frame.
+  Preview: open in a browser — Space = play/pause, ←/→ = ±2 s, ?t=47 starts at 47 s.
+-->
+<style>
+  :root{--navy:#1F3375;--navy-d:#17285E;--ink:#F4F6FB;--mute:#9FB0E0;--grid:rgba(244,246,251,.28);
+        --air:#8FD3FF;--sea:#4FB3A6;--road:#F2C14E;--rail:#E8794A;--green:#7BE0A1}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  #viewport{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--navy);color:var(--ink);
+    font-family:"Plus Jakarta Sans",sans-serif;transform-origin:center;flex:none}
+  #cam{position:absolute;inset:0;transform-origin:1380px 380px}
+  .abs{position:absolute}
+  #grid{inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:120px 120px}
+  svg{position:absolute;inset:0;overflow:visible}
+  .lbl{font:500 15px "JetBrains Mono";fill:var(--mute);letter-spacing:.12em}
+  .mono{font:500 15px "JetBrains Mono";letter-spacing:.16em;color:var(--mute);text-transform:uppercase;white-space:pre}
+  .wide{font-family:"Archivo";font-stretch:125%;text-transform:uppercase;white-space:nowrap}
+  .mask{overflow:hidden;padding:0 .04em .06em}
+  .mask>span{display:block;will-change:transform}
+  .ch{display:inline-block;will-change:transform,opacity}
+  #otoritas{left:150px;top:448px;font-weight:800;font-size:176px;line-height:1;letter-spacing:-.01em}
+  #oto-side{left:0;top:470px;display:flex;align-items:center;gap:26px}
+  #oto-side .bar{width:4px;height:128px;background:var(--green);transform-origin:top}
+  #oto-side .txt{font-family:"Archivo";font-stretch:100%;font-weight:600;font-size:38px;line-height:1.18;text-transform:uppercase;white-space:nowrap}
+  #persembahkan{left:0;right:0;top:500px;text-align:center;font-weight:700;font-size:54px;letter-spacing:.32em}
+  .cap{left:120px;top:540px}
+  .kw{left:112px;top:574px;font-weight:800;line-height:.95;letter-spacing:-.012em}
+  .kw .g{color:var(--green)}
+  #title{left:112px;top:560px;font-weight:800;font-stretch:112%;font-size:118px;line-height:.94;letter-spacing:-.015em}
+  #theme{left:120px;top:822px;width:1080px;font:500 30px/1.4 "Plus Jakarta Sans"}
+  #theme b{color:var(--green);font-weight:700}
+  #theme .w{display:inline-block;will-change:transform,opacity}
+  #topL{left:120px;top:84px} #topR{right:120px;top:84px}
+  #mks{left:112px;top:560px;font-weight:800;font-size:176px;line-height:1;letter-spacing:-.01em}
+  #flap{left:120px;top:770px;display:flex;gap:10px}
+  .cell{position:relative;width:86px;height:118px;background:var(--navy-d);border-radius:8px;box-shadow:inset 0 0 0 1px rgba(244,246,251,.12);
+    display:flex;align-items:center;justify-content:center;font-family:"Archivo";font-stretch:100%;font-weight:700;font-size:88px;overflow:hidden}
+  .cell::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:var(--navy);opacity:.9}
+  .cell.sep{width:34px;background:none;box-shadow:none}
+  .cell.sep::after{display:none}
+  #hari{left:120px;top:918px}
+  #logos{left:0;right:0;top:340px;height:400px;display:flex;align-items:center;justify-content:center;gap:110px}
+  #logos img{display:block;will-change:transform,opacity}
+  #endcap{left:0;right:0;top:790px;text-align:center}
+  #fade{inset:0;background:#0A1230;pointer-events:none}
+  #hud{position:fixed;left:12px;bottom:10px;font:12px "JetBrains Mono";color:#8aa;z-index:9}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+  <div id="cam">
+    <div id="grid" class="abs"></div>
+    <svg id="map" width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <defs><clipPath id="curveClip"><rect id="curveClipR" x="0" y="0" width="0" height="1080"/></clipPath></defs>
+      <path id="l-air"  d="M1920 150 H1700 L1500 350 H1380" stroke="var(--air)"  stroke-width="10"/>
+      <path id="l-sea"  d="M1920 300 H1760 L1620 440 H1380" stroke="var(--sea)"  stroke-width="10"/>
+      <path id="l-road" d="M1200 0 V200 L1380 380"           stroke="var(--road)" stroke-width="10"/>
+      <path id="l-rail" d="M1920 520 H1640 L1520 400 H1380" stroke="var(--rail)" stroke-width="10"/>
+      <text id="t-air"  x="1890" y="138" class="lbl" text-anchor="end">UDARA</text>
+      <text id="t-sea"  x="1890" y="288" class="lbl" text-anchor="end">LAUT</text>
+      <text id="t-road" x="1216" y="40"  class="lbl">DARAT</text>
+      <text id="t-rail" x="1890" y="508" class="lbl" text-anchor="end">REL</text>
+      <g clip-path="url(#curveClip)"><path id="curve" d="M120 250 C520 250 760 500 1180 520" stroke="var(--green)" stroke-width="4" stroke-dasharray="2 12"/></g>
+      <text id="t-curve" x="120" y="226" class="lbl" style="fill:var(--green)">EMISI GRK ↘</text>
+      <path id="rule" d="M120 520 H1180" stroke="var(--green)" stroke-width="4"/>
+      <text id="t-hub" x="1300" y="452" class="lbl" text-anchor="end"></text>
+      <!-- hub: ring + core + pulses; band is the end-card morph target -->
+      <circle id="pulse1" r="34" stroke="var(--ink)" stroke-width="2"/>
+      <circle id="pulse2" r="34" stroke="var(--ink)" stroke-width="2"/>
+      <rect id="band" fill="#FFFFFF"/>
+      <circle id="hubRing" r="34" fill="var(--navy)" stroke="var(--ink)" stroke-width="8"/>
+      <circle id="hubCore" r="12" fill="var(--ink)"/>
+    </svg>
+
+    <div id="topL" class="abs mono"></div>
+    <div id="topR" class="abs mono"></div>
+
+    <div id="otoritas" class="abs wide"></div>
+    <div id="oto-side" class="abs"><div class="bar"></div><div class="mask"><span class="txt">Bandar Udara<br>Wilayah V Makassar</span></div></div>
+    <div id="persembahkan" class="abs wide"></div>
+
+    <div id="kw1" class="abs kw wide" style="font-size:168px"><div class="mask"><span>Sinergi</span></div></div>
+    <div id="kw2" class="abs kw wide" style="font-size:112px"><div class="mask"><span>Transportasi</span></div><div class="mask"><span>Antarmoda</span></div></div>
+    <div id="kw3" class="abs kw wide" style="font-size:100px"><div class="mask"><span>Penurunan Emisi</span></div><div class="mask"><span class="g">Gas Rumah Kaca ↘</span></div></div>
+    <div id="kw4" class="abs kw wide" style="font-size:100px"><div class="mask"><span>Di Kawasan</span></div><div class="mask"><span>Bandar Udara</span></div></div>
+    <div id="cap1" class="abs cap mono">01 — Sinergi</div>
+    <div id="cap2" class="abs cap mono">02 — Antarmoda</div>
+    <div id="cap3" class="abs cap mono" style="color:var(--green)">03 — Emisi GRK</div>
+    <div id="cap4" class="abs cap mono">04 — Kawasan Bandar Udara</div>
+
+    <div id="title" class="abs wide"><div class="mask"><span>Rapat Koordinasi</span></div><div class="mask"><span>Wilayah</span></div></div>
+    <div id="theme" class="abs"></div>
+
+    <div id="mks" class="abs wide"><div class="mask"><span>Makassar</span></div></div>
+    <div id="flap" class="abs"></div>
+    <div id="hari" class="abs mono" style="font-size:18px"></div>
+  </div>
+  <div id="logos" class="abs">
+    <img id="lg1" src="assets/logos/kemenhub.png" style="height:236px" alt="Kementerian Perhubungan">
+    <img id="lg2" src="assets/logos/dgca.png" style="height:186px" alt="DGCA Ministry of Transportation">
+    <img id="lg3" src="assets/logos/icao_council.png" style="height:186px" alt="Indonesia for ICAO Council">
+  </div>
+  <div id="endcap" class="abs mono"></div>
+  <div id="fade" class="abs"></div>
+</div></div>
+<div id="hud"></div>
+
+<script>
+const DURATION = 80;
+const $ = id => document.getElementById(id);
+const clamp = (x,a=0,b=1) => Math.min(b,Math.max(a,x));
+const P = (t,a,b) => clamp((t-a)/(b-a));                     // linear progress in [a,b]
+const lerp = (a,b,p) => a+(b-a)*p;
+const expoOut = p => p>=1?1:1-Math.pow(2,-10*p);
+const expoIn  = p => p<=0?0:Math.pow(2,10*(p-1));
+const cubicIO = p => p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;
+const backOut = p => {const c=1.70158;return 1+(c+1)*Math.pow(p-1,3)+c*Math.pow(p-1,2)};
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+// in/out envelope: 0→1 over [a,a+din], 1→0 over [b-dout,b]
+const env = (t,a,b,din=.6,dout=.6) => Math.min(expoOut(P(t,a,a+din)), 1-expoIn(P(t,b-dout,b)));
+
+/* ---------- build letter spans ---------- */
+function letters(el,text){el.innerHTML='';return [...text].map(c=>{const s=document.createElement('span');s.className='ch';s.textContent=c===' '?' ':c;el.appendChild(s);return s})}
+const otoCh = letters($('otoritas'),'OTORITAS');
+const memCh = letters($('persembahkan'),'MEMPERSEMBAHKAN');
+const R1=rng(7),R2=rng(19),R3=rng(31);
+const memRand = memCh.map(()=>({d:R1()*.5,jx:(R1()-.5)*60,jy:(R1()-.5)*30,ox:(R2()-.5)*500,oy:(R2()-.5)*120,od:R2()*.4}));
+const otoRand = otoCh.map(()=>({d:R3()*.3,ox:(R3()-.5)*700,oy:(R3()-.5)*160,od:R3()*.35}));
+const GLYPHS='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+
+const themeHTML = 'Sinergi Transportasi Antarmoda dan <b>Penurunan Emisi Gas Rumah Kaca</b> di Kawasan Bandar Udara';
+(function(){const el=$('theme');const tmp=document.createElement('div');tmp.innerHTML=themeHTML;
+  tmp.childNodes.forEach(n=>{const bold=n.nodeType===1;n.textContent.split(/(\s+)/).forEach(w=>{
+    if(!w)return; if(/^\s+$/.test(w)){el.appendChild(document.createTextNode(' '));return}
+    const s=document.createElement('span');s.className='w';
+    if(bold){const b=document.createElement('b');b.textContent=w;s.appendChild(b)}else s.textContent=w;el.appendChild(s)})})})();
+const themeW=[...$('theme').querySelectorAll('.w')];
+
+const FLAP='20.10.2026';
+const flapCells=[...FLAP].map(c=>{const d=document.createElement('div');d.className='cell'+(c==='.'?' sep':'');d.textContent=c;$('flap').appendChild(d);return d});
+
+const paths=['air','sea','road','rail'].map(k=>{const p=$('l-'+k);const L=p.getTotalLength();p.style.strokeDasharray=L;return{p,L,t:$('t-'+k)}});
+const ruleL=$('rule').getTotalLength();$('rule').style.strokeDasharray=ruleL;
+
+function typeOn(str,p){const n=Math.round(str.length*clamp(p));return str.slice(0,n)}
+function maskLine(span,pIn,pOut){ // pIn/pOut in [0,1]
+  const y = (1-expoOut(pIn))*110 - expoIn(pOut)*110;
+  span.style.transform=`translateY(${y}%)`;
+}
+function setOp(el,o){el.style.opacity=o;el.style.visibility=o<=0.001?'hidden':'visible'}
+
+/* ---------- the one render function ---------- */
+const HUB_A={x:960,y:540}, HUB_B={x:1380,y:380};
+const PULSES=[1.2,2.4,3.6,22.6,23.95,25.3,26.6,35.4];   // hub pulse moments (shot 1 + line arrivals + hub label)
+function render(t){
+  /* camera: gentle drift per shot */
+  let s=1;
+  if(t<6.5) s=lerp(1.04,1.0,cubicIO(P(t,0,6.5)));
+  else if(t>=39&&t<53.5) s=lerp(1.0,1.025,P(t,39,53.5));
+  else if(t>=53.5&&t<65) s=lerp(1.025,1.0,cubicIO(P(t,53.5,55)));
+  $('cam').style.transform=`scale(${s})`;
+
+  /* grid */
+  setOp($('grid'), .18*expoOut(P(t,0,2.2)));
+
+  /* hub position: centre → map position (6.0–7.6) */
+  const hp=cubicIO(P(t,6.0,7.6));
+  const hx=lerp(HUB_A.x,HUB_B.x,hp), hy=lerp(HUB_A.y,HUB_B.y,hp);
+  const hubIn=backOut(P(t,1.0,1.7));
+  // end-card morph 65.0–66.8: ring/core shrink away; band grows from the hub
+  const m=P(t,65.0,66.8), me=cubicIO(m);
+  const hubOut=1-expoOut(P(t,65.0,65.6));
+  ['hubRing','hubCore'].forEach(id=>{$(id).setAttribute('cx',hx);$(id).setAttribute('cy',hy);$(id).style.transform=`scale(${hubIn*hubOut})`;$(id).style.transformOrigin=`${hx}px ${hy}px`});
+  // band: circle(68) at hub → pill → full-width band, centred y 540, h 400
+  const band=$('band');
+  if(m>0){
+    const w=lerp(68,1920+40,me), h=lerp(68,400,cubicIO(P(t,65.4,66.8)));
+    const cx=lerp(hx,960,me), cy=lerp(hy,540,me);
+    band.setAttribute('x',cx-w/2);band.setAttribute('y',cy-h/2);band.setAttribute('width',w);band.setAttribute('height',h);
+    band.setAttribute('rx',(h/2)*(1-P(t,66.2,66.8)));
+    band.style.opacity=1;
+  } else band.style.opacity=0;
+
+  /* pulses */
+  [$('pulse1'),$('pulse2')].forEach((c,i)=>{
+    let best=-1;for(const p of PULSES){if(t>=p&&t<p+1.4)best=p}
+    const alt = i===1 ? (()=>{for(const p of PULSES){if(t>=p+.35&&t<p+1.75)return p+.35}return -1})() : best;
+    if(alt<0||t>=65){c.style.opacity=0;return}
+    const q=P(t,alt,alt+1.4);
+    c.setAttribute('cx',hx);c.setAttribute('cy',hy);c.setAttribute('r',34+expoOut(q)*90);c.style.opacity=(1-q)*.55;
+  });
+
+  /* top labels */
+  $('topR').textContent=typeOn('Rakorwil · 2026',P(t,2.2,3.4));
+  setOp($('topR'), 1-P(t,64.6,65.2));
+  $('topL').textContent=typeOn('Kantor Otoritas Bandar Udara Wilayah V Makassar',P(t,42.0,44.0));
+  setOp($('topL'), 1-P(t,64.6,65.2));
+
+  /* ---- shot 2: OTORITAS + side text ---- */
+  const otoOn=t>=6.8&&t<13.2;
+  setOp($('otoritas'),otoOn?1:0);
+  if(otoOn){
+    const f=Math.floor(t*24);
+    otoCh.forEach((c,i)=>{
+      const a=7.0+i*.14, settle=a+.55;
+      const pin=P(t,a,a+.25), out=P(t,12.0+otoRand[i].od,12.6+otoRand[i].od);
+      c.textContent = t<settle ? GLYPHS[(f*7+i*13)%GLYPHS.length] : 'OTORITAS'[i];
+      const o=expoOut(pin)*(1-out);
+      c.style.opacity=o;
+      c.style.transform=`translate(${otoRand[i].ox*expoIn(out)}px,${otoRand[i].oy*expoIn(out)}px)`;
+      c.style.color = t<settle ? 'var(--green)' : 'var(--ink)';
+    });
+  }
+  const sideIn=P(t,8.4,9.4), sideOut=P(t,11.8,12.4);
+  setOp($('oto-side'), (t>8.3&&t<12.5)?1:0);
+  $('oto-side').querySelector('.bar').style.transform=`scaleY(${expoOut(P(t,8.3,8.9))*(1-expoIn(sideOut))})`;
+  maskLine($('oto-side').querySelector('.mask>span'),sideIn,sideOut);
+  // place side block right after the OTORITAS word
+
+  /* MEMPERSEMBAHKAN: assemble from scatter 13.0–14.4, scatter out 15.6–16.4 */
+  const memOn=t>=12.9&&t<16.6; setOp($('persembahkan'),memOn?1:0);
+  if(memOn){const n=memCh.length;memCh.forEach((c,i)=>{
+    const r=memRand[i], pin=expoOut(P(t,13.0+r.d,13.9+r.d)), out=expoIn(P(t,15.6+r.od*.6,16.3+r.od*.6));
+    const spread=(i-(n-1)/2)*70*(1-pin);
+    c.style.opacity=pin*(1-out);
+    c.style.transform=`translate(${spread+r.jx*(1-pin)+r.ox*out}px,${r.jy*(1-pin)+r.oy*out}px)`;
+  })}
+
+  /* ---- shot 3: keyword beats ---- */
+  const beats=[['kw1','cap1',16.8,20.6],['kw2','cap2',20.6,29.0],['kw3','cap3',29.0,35.0],['kw4','cap4',35.0,39.0]];
+  beats.forEach(([kw,cap,a,b])=>{
+    const on=t>=a&&t<b; setOp($(kw),on?1:0);
+    setOp($(cap), on?env(t,a+.1,b,.5,.4):0);
+    if(on)[...$(kw).querySelectorAll('.mask>span')].forEach((sp,i)=>maskLine(sp,P(t,a+.2+i*.18,a+1.2+i*.18),P(t,b-.6+i*.06,b-.05)));
+  });
+
+  /* modal lines draw in 21.2–26.6; retract at end 64.6–65.4 */
+  const lineT=[[21.2,22.6],[22.55,23.95],[23.9,25.3],[25.2,26.6]];
+  paths.forEach((o,i)=>{
+    const [a,b]=lineT[i]; const d=cubicIO(P(t,a,b)); const r=expoIn(P(t,64.4+i*.1,65.2+i*.1));
+    o.p.style.strokeDashoffset = o.L*(1-d) ; o.p.style.opacity=d>0.001?1-r:0;
+    setOp(o.t, P(t,b-.2,b+.4)*(1-r));
+  });
+
+  /* emission curve falls 29.4–32.0; stays as the decreasing trace */
+  $('curveClipR').setAttribute('width', 120+1080*cubicIO(P(t,29.4,32.0)));
+  setOp($('curve'), 1-P(t,64.4,65.0));
+  setOp($('t-curve'), P(t,29.6,30.4)*(1-P(t,64.4,65.0)));
+
+  /* hub label */
+  $('t-hub').textContent=typeOn('MAKASSAR · UPG / WAAA',P(t,35.4,36.8));
+  setOp($('t-hub'),1-P(t,64.4,65.0));
+
+  /* ---- shot 4: title lock-up ---- */
+  $('rule').style.strokeDashoffset=ruleL*(1-cubicIO(P(t,39.2,40.6)))+ ruleL*expoIn(P(t,52.6,53.4))*-1;
+  setOp($('rule'), t>=39.2&&t<53.4?1:0);
+  const titleOn=t>=39.6&&t<53.6; setOp($('title'),titleOn?1:0);
+  if(titleOn)[...$('title').querySelectorAll('.mask>span')].forEach((sp,i)=>maskLine(sp,P(t,39.8+i*.45,40.9+i*.45),P(t,52.6+i*.08,53.3+i*.08)));
+  const themeOn=t>=41.6&&t<53.6; setOp($('theme'),themeOn?1:0);
+  if(themeOn)themeW.forEach((w,i)=>{const p=expoOut(P(t,41.8+i*.14,42.5+i*.14)),o=P(t,52.4,53.0);w.style.opacity=p*(1-o);w.style.transform=`translateY(${(1-p)*18}px)`});
+
+  /* ---- shot 5: place & time ---- */
+  const mksOn=t>=53.8&&t<65.2; setOp($('mks'),mksOn?1:0);
+  if(mksOn)maskLine($('mks').querySelector('.mask>span'),P(t,54.0,55.1),P(t,64.2,64.9));
+  const flapOn=t>=54.8&&t<65.2; setOp($('flap'),flapOn?1:0);
+  if(flapOn){const f=Math.floor(t*18);flapCells.forEach((c,i)=>{
+    const ch=FLAP[i], a=55.0+i*.12, land=a+1.0+i*.08;
+    const pin=expoOut(P(t,a,a+.3)), out=P(t,64.2+i*.03,64.8+i*.03);
+    c.style.opacity=pin*(1-out); c.style.transform=`translateY(${(1-pin)*20 - expoIn(out)*30}px)`;
+    if(ch!=='.') c.textContent = t<land ? String((f+i*3)%10) : ch;
+  })}
+  $('hari').textContent=typeOn('Selasa, 20 Oktober 2026',P(t,57.4,58.8));
+  setOp($('hari'), t<64.2?1:1-P(t,64.2,64.8));
+
+  /* ---- shot 6: end card ---- */
+  ['lg1','lg2','lg3'].forEach((id,i)=>{const a=66.7+i*.45;const p=expoOut(P(t,a,a+.9));
+    $(id).style.opacity=p; $(id).style.transform=`translateY(${(1-p)*28}px) scale(${.94+.06*p})`;});
+  setOp($('logos'), t>=66.6?1:0);
+  $('endcap').textContent=typeOn('Kantor Otoritas Bandar Udara Wilayah V Makassar  ·  Rakorwil 2026',P(t,68.4,70.2));
+  setOp($('endcap'), t>=68.3?1:0);
+  setOp($('fade'), Math.max(1-expoOut(P(t,0,.8)), cubicIO(P(t,77.4,80))));
+}
+
+/* ---------- scale-to-fit for preview, playback & recorder hooks ---------- */
+function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080);$('stage').style.transform=`scale(${k})`}
+addEventListener('resize',fit);fit();
+window.__duration=DURATION;
+window.__seek=t=>{$('hud').style.display='none';render(t)};
+const qs=new URLSearchParams(location.search);
+if(window.__recording||qs.has('still'))$('hud').style.display='none';
+let t0=parseFloat(qs.get('t')||'0'), playing=!window.__recording && !qs.has('still'), last=null;
+function loop(now){ if(window.__recording)return;
+  if(playing){ if(last!=null)t0+= (now-last)/1000; if(t0>DURATION)t0=0; }
+  last=now; render(t0); $('hud').textContent=`${t0.toFixed(2)}s  [space] play/pause  [←/→] ±2s`; requestAnimationFrame(loop)}
+addEventListener('keydown',e=>{if(e.code==='Space'){playing=!playing;e.preventDefault()} if(e.code==='ArrowRight')t0=Math.min(DURATION,t0+2); if(e.code==='ArrowLeft')t0=Math.max(0,t0-2)});
+function measure(){const w=$('otoritas').offsetWidth;$('oto-side').style.left=(150+w+40)+'px'}
+Promise.all([document.fonts.ready,...[...document.images].map(i=>i.decode().catch(()=>{}))]).then(()=>{otoCh.forEach((c,i)=>c.textContent='OTORITAS'[i]);measure();render(t0);window.__ready=true;requestAnimationFrame(loop)});
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Opening Rakorwil 2026 — Otban Wilayah V Makassar · Direction boards
 
-Status: **WAITING FOR CLIENT CHOICE** (no full animation built yet).
+Status: **B chosen** — see direction-approved.md; final video: Opening-Rakorwil-2026.mp4
 
 | | Direction | Hero frame | Motif (where the form comes from) | Motion language |
 |---|---|---|---|---|
