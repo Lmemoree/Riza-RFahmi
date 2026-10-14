@@ -1,0 +1,27 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Bumper A · Flight Path</title>
+<link rel="stylesheet" href="../../otban-rakorwil-opening/assets/fonts/fonts.css">
+<!-- Direction A "Flight Path": continuity with the opening video's transit-map system.
+     Loop: plane flies the dotted great-circle arc left→right; its contrail is the green dotted line
+     that fades behind it (emisi ↓). Title stays fixed and legible (it's a stage backdrop). -->
+<style>
+:root{--navy:#1F3375;--ink:#F4F6FB;--mute:#9FB0E0;--grid:rgba(244,246,251,.28);--green:#7BE0A1;--air:#8FD3FF}
+body{margin:0;background:#000}.f{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--navy);color:var(--ink);font-family:"Plus Jakarta Sans"}
+.grid{position:absolute;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:120px 120px;opacity:.18}
+svg{position:absolute;inset:0}.plane{fill:var(--ink)}.lbl{font:500 15px "JetBrains Mono";fill:var(--mute);letter-spacing:.12em}
+.mono{position:absolute;font:500 15px "JetBrains Mono";letter-spacing:.16em;color:var(--mute);text-transform:uppercase}
+.kick{left:120px;top:560px;color:var(--green)}
+h1{position:absolute;left:112px;top:596px;margin:0;font-family:Archivo;font-stretch:118%;font-weight:800;font-size:104px;line-height:.98;letter-spacing:-.012em;text-transform:uppercase}
+h1 .g{color:var(--green)}
+.sub{left:120px;top:830px}
+</style></head><body><div class="f"><div class="grid"></div>
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none">
+ <path d="M-80 470 Q 960 40 2000 470" stroke="rgba(244,246,251,.22)" stroke-width="2" stroke-dasharray="2 10"/>
+ <path d="M300 300 Q 760 150 1180 190" stroke="var(--green)" stroke-width="4" stroke-dasharray="2 12" opacity=".9"/>
+ <circle cx="120" cy="420" r="9" stroke="var(--ink)" stroke-width="4"/><text x="146" y="426" class="lbl">MAKASSAR · UPG</text>
+ <g transform="translate(1230,186) rotate(4) scale(1.35)"><g class="plane"><rect x="-46" y="-4.5" width="94" height="9" rx="4.5"/><polygon points="8,-4 -8,-40 -16,-40 -10,-4"/><polygon points="8,4 -8,40 -16,40 -10,4"/><polygon points="-34,-4 -42,-18 -48,-18 -44,-4"/><polygon points="-34,4 -42,18 -48,18 -44,4"/></g></g>
+</svg>
+<div class="mono" style="left:120px;top:84px">Rakorwil 2026 · Otoritas Bandar Udara Wilayah V Makassar</div>
+<div class="mono kick">Program</div>
+<h1>RAN GRK di Sektor<br><span class="g">Transportasi Udara</span></h1>
+<div class="mono sub">Rencana Aksi Nasional Penurunan Emisi Gas Rumah Kaca</div>
+</div></body></html>

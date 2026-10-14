@@ -1,0 +1,26 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><title>Bumper B · Departures</title>
+<link rel="stylesheet" href="../../otban-rakorwil-opening/assets/fonts/fonts.css">
+<!-- Direction B "Departures": the airport's flight-information display (split-flap board) as the frame.
+     Loop: rows flip-refresh in a wave every few seconds, a small plane icon taxis along the header rail. -->
+<style>
+:root{--navy:#1F3375;--cell:#15245A;--ink:#F4F6FB;--mute:#9FB0E0;--amber:#FFC24B;--green:#7BE0A1}
+body{margin:0;background:#000}.f{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--navy);color:var(--ink);font-family:"Plus Jakarta Sans"}
+.board{position:absolute;left:50%;transform:translateX(-50%);width:1688px;top:250px}
+.hdr{display:flex;align-items:center;gap:18px;font:600 22px "JetBrains Mono";letter-spacing:.2em;color:var(--amber);text-transform:uppercase;padding-bottom:22px;border-bottom:2px solid rgba(244,246,251,.18)}
+.hdr svg{width:46px;height:46px}.hdr .plane{fill:var(--amber)}
+.row{display:flex;gap:6px;margin-top:22px}
+.c{width:83px;height:118px;background:var(--cell);border-radius:6px;position:relative;display:flex;align-items:center;justify-content:center;font:700 80px "Archivo";font-stretch:100%;box-shadow:inset 0 0 0 1px rgba(244,246,251,.08)}
+.c::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:var(--navy)}
+.c.e{background:rgba(21,36,90,.45)}.g .c{color:var(--green)}
+.meta{display:flex;justify-content:space-between;margin-top:34px;font:500 16px "JetBrains Mono";letter-spacing:.16em;color:var(--mute);text-transform:uppercase}
+.status{color:var(--green)}
+</style></head><body><div class="f">
+<div class="board">
+ <div class="hdr"><svg viewBox="-50 -50 100 100"><g class="plane"><rect x="-46" y="-4.5" width="94" height="9" rx="4.5"/><polygon points="8,-4 -8,-40 -16,-40 -10,-4"/><polygon points="8,4 -8,40 -16,40 -10,4"/><polygon points="-34,-4 -42,-18 -48,-18 -44,-4"/><polygon points="-34,4 -42,18 -48,18 -44,4"/></g></svg>Sesi · Rakorwil 2026</div>
+ <div class="row" id="r1"></div><div class="row" id="r2"></div><div class="row g" id="r3"></div>
+ <div class="meta"><span>Otoritas Bandar Udara Wilayah V Makassar</span><span>Makassar · UPG / WAAA</span></div>
+</div></div>
+<script>
+const rows={r1:'PROGRAM RAN GRK',r2:'DI SEKTOR',r3:'TRANSPORTASI UDARA'};const N=19;
+for(const[id,txt]of Object.entries(rows)){const el=document.getElementById(id);for(let i=0;i<N;i++){const d=document.createElement('div');const ch=txt[i]||' ';d.className='c'+(ch===' '?' e':'');d.textContent=ch===' '?'':ch;el.appendChild(d)}}
+</script></body></html>
