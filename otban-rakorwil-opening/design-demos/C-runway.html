@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Direction C · Runway</title>
+<link rel="stylesheet" href="../assets/fonts/fonts.css">
+<!--
+  Direction C — "Runway" (airfield signage language)
+  Logic: the venue's own visual system — runway centreline, edge lights, taxiway sign
+  panels — becomes the typography. Camera slowly dollies down a runway at dusk (#1F3375 sky);
+  each information beat arrives as a sign panel that lights up. Green edge lights carry the
+  emission-reduction idea. Hero keyframe: title panel lit, runway in perspective.
+-->
+<style>
+  :root{--navy:#1F3375;--deep:#121E4D;--ink:#F4F6FB;--mute:#B4C0E6;--sign:#FFC727;--signbg:#0B0F1E;--green:#6EE7A8}
+  html,body{margin:0;background:#000}
+  .frame{position:relative;width:1920px;height:1080px;overflow:hidden;color:var(--ink);font-family:"Plus Jakarta Sans",sans-serif;
+    background:linear-gradient(180deg,var(--navy) 0%,#2A4396 52%,var(--deep) 52.2%,#0B1338 100%)}
+  .haze{position:absolute;left:0;right:0;top:470px;height:160px;background:radial-gradient(60% 100% at 50% 50%,rgba(255,199,39,.22),transparent 70%)}
+  svg.rw{position:absolute;inset:0}
+  .panel{position:absolute;left:50%;top:150px;transform:translateX(-50%);display:flex;align-items:stretch;
+    border:5px solid #000;box-shadow:0 0 0 3px rgba(255,199,39,.35),0 30px 80px rgba(0,0,0,.45)}
+  .panel div{padding:16px 36px;white-space:nowrap;font:800 84px/1 "Barlow Condensed";text-transform:uppercase;letter-spacing:.01em;display:flex;align-items:center}
+  .p1{background:var(--signbg);color:var(--sign);border-right:5px solid var(--sign)}
+  .p2{background:var(--sign);color:#000}
+  .sub{position:absolute;left:0;right:0;top:322px;text-align:center;font:500 22px "Plus Jakarta Sans";letter-spacing:.34em;color:var(--mute);text-transform:uppercase}
+  .theme{position:absolute;left:50%;top:378px;transform:translateX(-50%);width:1400px;text-align:center;font:700 40px/1.3 "Barlow Condensed";letter-spacing:.04em;text-transform:uppercase}
+  .theme b{color:var(--green)}
+  .meta{position:absolute;bottom:72px;left:120px;right:120px;display:flex;justify-content:space-between;align-items:flex-end}
+  .tag{display:flex;border:4px solid #000}
+  .tag span{padding:10px 22px;font:700 34px/1 "Barlow Condensed";text-transform:uppercase}
+  .tag .k{background:var(--signbg);color:var(--sign)} .tag .v{background:var(--sign);color:#000}
+  .org{font:500 15px/1.5 "Plus Jakarta Sans";letter-spacing:.2em;color:var(--mute);text-transform:uppercase;text-align:right}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="haze"></div>
+  <svg class="rw" width="1920" height="1080" viewBox="0 0 1920 1080">
+    <!-- runway surface in perspective, vanishing point (960,562) -->
+    <polygon points="900,562 1020,562 1720,1080 200,1080" fill="#0E1640"/>
+    <g fill="#F4F6FB" opacity=".85">
+      <polygon points="956,580 964,580 966,600 954,600"/>
+      <polygon points="951,630 969,630 973,670 947,670"/>
+      <polygon points="943,720 977,720 984,800 936,800"/>
+      <polygon points="928,880 992,880 1006,1040 914,1040"/>
+    </g>
+    <!-- edge lights: green = the reduction story -->
+    <g fill="var(--green)">
+      <circle cx="905" cy="566" r="2"/><circle cx="880" cy="584" r="3"/><circle cx="840" cy="614" r="4"/><circle cx="770" cy="664" r="5"/><circle cx="650" cy="752" r="7"/><circle cx="460" cy="890" r="9"/><circle cx="230" cy="1058" r="12"/>
+      <circle cx="1015" cy="566" r="2"/><circle cx="1040" cy="584" r="3"/><circle cx="1080" cy="614" r="4"/><circle cx="1150" cy="664" r="5"/><circle cx="1270" cy="752" r="7"/><circle cx="1460" cy="890" r="9"/><circle cx="1690" cy="1058" r="12"/>
+    </g>
+    <g fill="var(--green)" opacity=".25" filter="blur(6px)"><circle cx="460" cy="890" r="26"/><circle cx="1460" cy="890" r="26"/><circle cx="230" cy="1058" r="34"/><circle cx="1690" cy="1058" r="34"/></g>
+  </svg>
+  <div class="panel"><div class="p1">Rakorwil ↗</div><div class="p2">Rapat Koordinasi Wilayah</div></div>
+  <div class="sub">Kantor Otoritas Bandar Udara Wilayah V Makassar</div>
+  <div class="theme">Sinergi Transportasi Antarmoda dan <b>Penurunan Emisi Gas Rumah Kaca</b><br>di Kawasan Bandar Udara</div>
+  <div class="meta">
+    <div class="tag"><span class="k">UPG</span><span class="v">Makassar · 20 Oktober 2026</span></div>
+    <div class="org">Selasa<br>Rakorwil 2026</div>
+  </div>
+</div>
+</body>
+</html>

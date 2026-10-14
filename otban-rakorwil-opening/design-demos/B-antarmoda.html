@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Direction B · Antarmoda</title>
+<link rel="stylesheet" href="../assets/fonts/fonts.css">
+<!--
+  Direction B — "Antarmoda" (Swiss transit-map system)
+  Logic: the theme literally IS a network — four modes (udara, laut, darat, rel) converging
+  on one node: Makassar / Sultan Hasanuddin (IATA UPG · ICAO WAAA). Lines draw on in
+  sequence, then a single descending line (the emission curve) cuts through and becomes
+  the underline of the title. Flat #1F3375, no glow. Hero keyframe at title lock-up.
+-->
+<style>
+  :root{--navy:#1F3375;--ink:#F4F6FB;--mute:#9FB0E0;--line:rgba(244,246,251,.28);
+        --air:#8FD3FF;--sea:#4FB3A6;--road:#F2C14E;--rail:#E8794A;--green:#7BE0A1}
+  html,body{margin:0;background:#000}
+  .frame{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--navy);color:var(--ink);
+    font-family:"Plus Jakarta Sans",sans-serif}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:120px 120px;opacity:.18}
+  svg.map{position:absolute;inset:0}
+  .lbl{font:500 15px "JetBrains Mono";fill:var(--mute);letter-spacing:.12em}
+  .top{position:absolute;left:120px;top:84px;right:120px;display:flex;justify-content:space-between;
+    font:500 15px "JetBrains Mono";letter-spacing:.16em;color:var(--mute);text-transform:uppercase}
+  h1{position:absolute;left:112px;top:560px;margin:0;font-family:"Archivo";font-weight:800;font-stretch:112%;
+    font-size:118px;line-height:.94;letter-spacing:-.015em;text-transform:uppercase}
+  .theme{position:absolute;left:120px;top:822px;width:1080px;font:500 30px/1.4 "Plus Jakarta Sans"}
+  .theme b{color:var(--green);font-weight:700}
+  .meta{position:absolute;right:120px;top:830px;text-align:right;font-family:"Archivo";font-weight:700;font-stretch:112%;font-size:30px;line-height:1.3;text-transform:uppercase}
+  .meta span{display:block;font:500 15px "JetBrains Mono";letter-spacing:.16em;color:var(--mute);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="grid"></div>
+  <svg class="map" width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- four modal lines converging on the hub -->
+    <path d="M1920 150 H1700 L1500 350 H1380" stroke="var(--air)" stroke-width="10"/>
+    <path d="M1920 300 H1760 L1620 440 H1380" stroke="var(--sea)" stroke-width="10"/>
+    <path d="M1200 0 V200 L1380 380" stroke="var(--road)" stroke-width="10"/>
+    <path d="M1920 520 H1640 L1520 400 H1380" stroke="var(--rail)" stroke-width="10"/>
+    <!-- hub -->
+    <circle cx="1380" cy="380" r="34" fill="var(--navy)" stroke="var(--ink)" stroke-width="8"/>
+    <circle cx="1380" cy="380" r="12" fill="var(--ink)"/>
+    <text x="1300" y="452" class="lbl" text-anchor="end">MAKASSAR · UPG / WAAA</text>
+    <text x="1890" y="138" class="lbl" text-anchor="end">UDARA</text>
+    <text x="1890" y="288" class="lbl" text-anchor="end">LAUT</text>
+    <text x="1216" y="40" class="lbl">DARAT</text>
+    <text x="1890" y="508" class="lbl" text-anchor="end">REL</text>
+    <!-- emission curve: descends from the hub and becomes the title rule -->
+    <path d="M120 250 C520 250 760 500 1180 520" stroke="var(--green)" stroke-width="4" stroke-dasharray="2 12"/>
+    <path d="M120 520 H1180" stroke="var(--green)" stroke-width="4"/>
+    <text x="120" y="226" class="lbl" style="fill:var(--green)">EMISI GRK ↘</text>
+  </svg>
+  <div class="top"><span>Kantor Otoritas Bandar Udara Wilayah V Makassar</span><span>Rakorwil · 2026</span></div>
+  <h1>Rapat Koordinasi<br>Wilayah</h1>
+  <div class="theme">Sinergi Transportasi Antarmoda dan <b>Penurunan Emisi Gas Rumah Kaca</b> di Kawasan Bandar Udara</div>
+  <div class="meta">Makassar<br>20.10.2026<span>Selasa, 20 Oktober 2026</span></div>
+</div>
+</body>
+</html>
