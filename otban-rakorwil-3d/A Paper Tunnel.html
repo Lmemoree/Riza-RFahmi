@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D Opening A · Paper Tunnel</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}</style>
+<script type="importmap">{"imports":{"three":"/vendor/three.module.min.js"}}</script>
+</head><body>
+<!--
+  3D opening A · Paper Tunnel — 45 s. Storyboard: STORYBOARD.md.
+  World: ~46 cut-paper rings along -z, each slowly rotating; paper planes orbit ahead of the camera.
+  Camera dollies forward on keyframes the whole time; copy lives on a "card" that rides 6 units in front of the camera
+  so text never collides with rings. Key light follows the camera so paper shadows stay consistent.
+  Preview: run `python3 -m http.server` in this folder, open this file (?t=20 to jump).
+-->
+<script type="module">
+import {THREE,PAL,rng,makeRenderer,paperMat,mesh,extrude,ringShape,cloudShape,planeMesh,loadFont,text3D,lights,stage,
+        P,lerp,expoOut,expoIn,cubicIO,backOut,keys,letterRow,animRow,logoCard} from '/lib.js';
+const DUR=45;
+const renderer=makeRenderer(document.body), scene=new THREE.Scene(); scene.background=new THREE.Color(PAL.navyDeep);
+const cam=new THREE.PerspectiveCamera(50,16/9,.1,300);
+const key=lights(scene,{intensity:2.5,shadowBox:9,hemi:1.0});
+
+/* ---------- tunnel ---------- */
+const R=rng(42), BASE=[PAL.navy,PAL.navyDeep,PAL.navyMid,'#24408A',PAL.blue,PAL.navyDeep], ACC=[PAL.sky,PAL.amber,PAL.green,PAL.coral,PAL.teal];
+const KINDS=['scallop','zigzag','wave','scallop','zigzag'];
+const rings=[]; const Z0=4, GAP=1.5, NR=46;
+for(let i=0;i<NR;i++){
+  const kind=KINDS[i%KINDS.length], teeth=[18,26,34,44][i%4], amp=.22+R()*.22;
+  const col=(i%4===3)?ACC[(i/4|0)%ACC.length]:BASE[i%BASE.length];   // calm navy family, accent on every 4th ring
+  const m=mesh(extrude(ringShape(16,3.9+R()*.5,kind,teeth,amp,R()*6),.06),paperMat(col));
+  m.position.z=Z0-i*GAP; m.userData.spin=(i%2?1:-1)*(.03+R()*.05); scene.add(m); rings.push(m);
+}
+const ZEND=Z0-NR*GAP-1.0;                                             // end wall behind the last ring
+const endBack=mesh(new THREE.PlaneGeometry(60,40),paperMat(PAL.navy)); endBack.position.z=ZEND-.2; endBack.receiveShadow=false; scene.add(endBack);
+
+/* ---------- cloud doors (open at the start) ---------- */
+const clouds=[];
+[[-1,0,1,PAL.cream,0],[1,0,2,'#E6E2D6',.06],[-1,1,3,'#E6E2D6',.12],[1,1,4,PAL.cream,.18],[-1,0,5,'#D9D5C8',-.25],[1,1,6,'#D9D5C8',-.3]].forEach(([side,up,seed,c,dz])=>{
+  const m=mesh(extrude(cloudShape(16,8,seed,6),.08),paperMat(c));
+  m.rotation.z=side<0?-Math.PI/2:Math.PI/2;   // bumpy edge faces the centre seam
+  m.userData={side,dz,up,seed}; scene.add(m); clouds.push(m);
+});
+
+/* ---------- paper planes orbiting ahead of camera ---------- */
+const planes=[0,1,2,3].map(i=>{const p=planeMesh(PAL.paper,.03);p.scale.setScalar(.7);p.traverse(o=>o.castShadow=false);scene.add(p);return p});
+
+/* ---------- copy (authored at 6 units; card is scaled to 3.5/6 and placed 3.5 ahead → same size on screen) ---------- */
+const fX=await loadFont('/assets/fonts/archivo-x-800.ttf'), fJ=await loadFont('/assets/fonts/jakarta-700.ttf'), fJm=await loadFont('/assets/fonts/jakarta-500.ttf');
+const card=new THREE.Group(); scene.add(card);           // rides in front of the camera
+const add=(row,x,y)=>{row.group.position.set(x,y,0);card.add(row.group);return row};
+const oto=add(letterRow(fX,'OTORITAS',{size:.62,depth:.08,color:PAL.paper,side:PAL.navyMid,align:'left'}),-3.25,-.2);
+const otoS1=add(letterRow(fJ,'BANDAR UDARA',{size:.2,depth:.03,color:PAL.paper,align:'left'}),-3.25+oto.w+.28,.17);
+const otoS2=add(letterRow(fJ,'WILAYAH V MAKASSAR',{size:.2,depth:.03,color:PAL.paper,align:'left'}),-3.25+oto.w+.28,-.17);
+// recentre the OTORITAS lock-up
+{const W=oto.w+.28+otoS2.w, dx=-W/2+3.25; [oto,otoS1,otoS2].forEach(r=>r.group.position.x+=dx)}
+const mem=add(letterRow(fX,'MEMPERSEMBAHKAN',{size:.3,depth:.05,color:PAL.paper,tracking:.35}),0,-.15);
+const KW=[['SINERGI'],['TRANSPORTASI','ANTARMODA'],['PENURUNAN EMISI','GAS RUMAH KACA'],['DI KAWASAN','BANDAR UDARA']];
+const kw=KW.map((lines,k)=>lines.map((s,j)=>add(letterRow(fX,s,{size:k===0?.72:.5,depth:.07,color:(k===2&&j===1)?PAL.green:PAL.paper,side:PAL.navyMid}),0,(lines.length===1?-.3:(.3-j*.66)))));
+const tt1=add(letterRow(fX,'RAPAT KOORDINASI',{size:.5,depth:.08,color:PAL.paper,side:PAL.navyMid}),0,.75);
+const tt2=add(letterRow(fX,'WILAYAH',{size:.5,depth:.08,color:PAL.green,side:PAL.greenDeep}),0,.1);
+const th1=add(letterRow(fJm,'Sinergi Transportasi Antarmoda dan Penurunan Emisi',{size:.15,depth:.02,color:PAL.paper}),0,-.5);
+const th2=add(letterRow(fJm,'Gas Rumah Kaca di Kawasan Bandar Udara',{size:.15,depth:.02,color:PAL.paper}),0,-.78);
+const d1=add(letterRow(fX,'MAKASSAR',{size:.7,depth:.09,color:PAL.paper,side:PAL.navyMid}),0,.05);
+const d2=add(letterRow(fJ,'SELASA, 20 OKTOBER 2026',{size:.24,depth:.03,color:PAL.green,tracking:.12}),0,-.55);
+// logos on the end disc
+const logos=[logoCard('/assets/logos/kemenhub.png',1.55),logoCard('/assets/logos/dgca.png',1.15),logoCard('/assets/logos/icao_council_dark.png',1.3)];
+await Promise.all(logos.map(l=>l.userData.ready));
+{let x=-((logos[0].scale.x+logos[1].scale.x+logos[2].scale.x)+2*.7)/2; logos.forEach(l=>{l.position.set(x+l.scale.x/2,-.0,ZEND+.12);x+=l.scale.x+.7;scene.add(l)})}
+
+/* ---------- timeline ---------- */
+const CAMZ=[[0,13],[3.5,9],[9.5,-6],[12,-12],[23,-36],[32,-46],[37.5,-52.5],[42.5,ZEND+8.0],[45,ZEND+7.5]];
+const allRows=[oto,otoS1,otoS2,mem,...kw.flat(),tt1,tt2,th1,th2,d1,d2];
+function render(t){
+  const cz=keys(CAMZ,t);
+  const sway=Math.sin(t*.35)*.18;                       // gentle handheld drift so the frame never freezes
+  cam.position.set(sway,Math.cos(t*.27)*.12,cz); cam.lookAt(sway*.4,0,cz-10); cam.rotation.z+=Math.sin(t*.2)*.02;
+  key.position.set(cam.position.x+3,cam.position.y+4,cz+3); key.target.position.set(0,0,cz-8);
+  rings.forEach(r=>r.rotation.z=t*r.userData.spin);
+  // clouds part 0.4–3.6
+  const op=cubicIO(P(t,.4,3.6));
+  clouds.forEach((c,i)=>{const u=c.userData; c.position.set(u.side*(.75+u.up*.5+op*7.5),(u.up?2.6:-1.4)+(u.seed%3-1)*.6,10.4+u.dz); c.visible=op<.999});
+  // planes orbit in a band 8–11 units ahead
+  planes.forEach((p,i)=>{const a=t*.55+i*Math.PI/2, r=3.1+.25*Math.sin(t*.8+i), z=cz-8.5-i*.8;
+    p.position.set(Math.cos(a)*r,Math.sin(a)*r,z); p.rotation.set(0,0,a+Math.PI/2); p.visible=t>2.5&&t<36});
+  // copy card in front of the camera
+  card.position.set(cam.position.x*.8,cam.position.y*.8,cz-3.5); card.scale.setScalar(3.5/6);
+  allRows.forEach(r=>r.group.visible=false);
+  animRow(oto,t,4.0,8.9); animRow(otoS1,t,5.0,8.8,{stagger:.02}); animRow(otoS2,t,5.2,8.8,{stagger:.02});
+  animRow(mem,t,9.6,11.6,{stagger:.03});
+  const B=[[12.0,14.4],[14.6,17.4],[17.6,20.4],[20.6,23.0]];
+  kw.forEach((lines,k)=>lines.forEach((row,j)=>animRow(row,t,B[k][0]+j*.25,B[k][1]-.4+j*.05)));
+  animRow(tt1,t,23.4,31.4); animRow(tt2,t,23.9,31.5); animRow(th1,t,25.0,31.3,{stagger:.012,dur:.4}); animRow(th2,t,25.3,31.3,{stagger:.012,dur:.4});
+  animRow(d1,t,32.2,37.0,{stagger:.06}); animRow(d2,t,33.0,37.0,{stagger:.025});
+  // logos: band + cards flip in on the end disc
+  logos.forEach((l,i)=>{const p=backOut(P(t,39.2+i*.35,39.9+i*.35)); l.visible=t>39.2+i*.35; l.rotation.x=(-Math.PI/2)*(1-Math.min(1,p))});
+  // fade to navy at the very end
+  renderer.toneMappingExposure=1.05*(1-cubicIO(P(t,43.4,45)))+.0001;
+}
+stage(renderer,scene,cam,render,DUR);
+</script></body></html>

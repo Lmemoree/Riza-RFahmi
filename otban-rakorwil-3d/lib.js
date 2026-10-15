@@ -16,7 +16,7 @@ export function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 |
 export function makeRenderer(canvasParent) {
   const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
   r.setPixelRatio(1); r.setSize(1920, 1080);
-  r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
+  r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFShadowMap;
   r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
   canvasParent.appendChild(r.domElement);
   return r;
@@ -104,7 +104,7 @@ export function text3D(font, str, { size = 1, depth = .12, color = PAL.paper, si
 export function lights(scene, { key = [3, 4, 6], intensity = 2.4, hemi = .9, shadowBox = 6 } = {}) {
   scene.add(new THREE.HemisphereLight('#dfe8ff', '#1a2550', hemi));
   const d = new THREE.DirectionalLight('#fff6e8', intensity); d.position.set(...key); d.castShadow = true;
-  d.shadow.mapSize.set(2048, 2048); d.shadow.radius = 6; d.shadow.bias = -.0004; d.shadow.normalBias = .01;
+  d.shadow.mapSize.set(1024, 1024); d.shadow.radius = 3; d.shadow.bias = -.0004; d.shadow.normalBias = .01;
   Object.assign(d.shadow.camera, { left: -shadowBox, right: shadowBox, top: shadowBox, bottom: -shadowBox, near: .1, far: 60 });
   scene.add(d); scene.add(d.target); return d;
 }
@@ -119,4 +119,55 @@ export function stage(renderer, scene, camera, render, duration) {
   let t0 = performance.now();
   const tick = now => { if (window.__recording) return; draw(still ?? ((now - t0) / 1000) % duration); if (still == null) requestAnimationFrame(tick); };
   draw(still ?? 0); window.__ready = true; requestAnimationFrame(tick);
+}
+
+// ---------- animation helpers ----------
+export const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+export const P = (t, a, b) => clamp((t - a) / (b - a));
+export const lerp = (a, b, p) => a + (b - a) * p;
+export const expoOut = p => p >= 1 ? 1 : 1 - Math.pow(2, -10 * p);
+export const expoIn = p => p <= 0 ? 0 : Math.pow(2, 10 * (p - 1));
+export const cubicIO = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+export const backOut = p => { const c = 1.70158; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+// smooth piecewise keyframes [[t,v],...] with cubic in-out between keys
+export function keys(K, t) { if (t <= K[0][0]) return K[0][1]; for (let i = 1; i < K.length; i++) if (t <= K[i][0]) return lerp(K[i - 1][1], K[i][1], cubicIO(P(t, K[i - 1][0], K[i][0]))); return K[K.length - 1][1]; }
+
+// A row of per-letter 3D meshes, each hinged at its baseline (pivot group) so it can flip up like a paper tab.
+// Returns {group, letters:[pivot], w, h}. Row is centred unless align='left'.
+export function letterRow(font, str, { size = .5, depth = .06, color = PAL.paper, side = null, bevel = .006, tracking = 0, align = 'center' } = {}) {
+  const g = new THREE.Group(), res = font.data.resolution || 1000, letters = []; let x = 0, h = size * .72;
+  const mats = side ? [paperMat(color), paperMat(side)] : paperMat(color);
+  for (const ch of str) {
+    const glyph = font.data.glyphs[ch] || font.data.glyphs['?']; const adv = (glyph ? glyph.ha : res / 2) * size / res;
+    if (ch !== ' ') {
+      // geometry keeps the font's own baseline (y=0) so descenders hang below it
+      const geo = new TextGeometry(ch, { font, size, height: depth, depth, curveSegments: 8, bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel * .8, bevelSegments: 2 });
+      const m = new THREE.Mesh(geo, mats); m.castShadow = false; m.receiveShadow = false;   // no cast/receive: avoids ghost copies on far layers
+      const pivot = new THREE.Group(); pivot.position.x = x; pivot.add(m); g.add(pivot); letters.push(pivot);
+    }
+    x += adv + tracking * size;
+  }
+  const w = x - tracking * size; const off = align === 'center' ? -w / 2 : 0;
+  g.children.forEach(c => c.position.x += off);
+  return { group: g, letters, w, h };
+}
+// flip letters up (in) and away (out). stagger in seconds per letter.
+export function animRow(row, t, tin, tout, { stagger = .045, dur = .55, outDur = .4 } = {}) {
+  const n = row.letters.length; let any = false;
+  row.letters.forEach((L, i) => {
+    const pi = backOut(P(t, tin + i * stagger, tin + i * stagger + dur));
+    const po = expoIn(P(t, tout + i * stagger * .5, tout + i * stagger * .5 + outDur));
+    const vis = t >= tin + i * stagger && t < tout + i * stagger * .5 + outDur;
+    L.visible = vis; if (vis) any = true;
+    L.rotation.x = (-Math.PI / 2) * (1 - Math.min(1, pi)) + (Math.PI / 2) * po;  // lies flat → stands up → falls back
+    L.scale.setScalar(.6 + .4 * Math.min(1, P(t, tin + i * stagger, tin + i * stagger + dur * .5)));
+  });
+  row.group.visible = any;
+}
+// Logo as a thin paper card with the PNG on its face (keeps alpha). height in world units.
+export function logoCard(url, height) {
+  const tex = new THREE.TextureLoader().load(url); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: .8, alphaTest: .02 }));
+  m.castShadow = true; m.userData.ready = new Promise(res => { const chk = () => tex.image ? (m.scale.set(height * tex.image.width / tex.image.height, height, 1), res()) : setTimeout(chk, 20); chk(); });
+  return m;
 }

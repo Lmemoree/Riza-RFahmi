@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D Opening B · Paper Diorama</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}</style>
+<script type="importmap">{"imports":{"three":"/vendor/three.module.min.js"}}</script>
+</head><body>
+<!--
+  3D opening B · Paper Diorama — 45 s. Storyboard: STORYBOARD.md.
+  A 140-unit-long cut-paper landscape (sky, hills, sea, rail, road, verge, runway) stacked in depth; the camera trucks
+  left→right so layers slide at different speeds (real parallax). Ships, trains and buses loop along their lanes;
+  each keyword beat triggers something in the landscape (trees pop up for emisi ↓, tower rises for bandar udara,
+  a plane takes off). Copy rides with the camera in the sky band. Preview: `python3 -m http.server` here, open file.
+-->
+<script type="module">
+import {THREE,PAL,rng,makeRenderer,paperMat,mesh,extrude,stripShape,cloudShape,planeMesh,loadFont,lights,stage,
+        P,lerp,expoOut,expoIn,cubicIO,backOut,keys,letterRow,animRow,logoCard} from '/lib.js';
+const DUR=45, W=150;
+const renderer=makeRenderer(document.body), scene=new THREE.Scene(); scene.background=new THREE.Color(PAL.navy);
+const cam=new THREE.PerspectiveCamera(32,16/9,.1,300);
+const key=lights(scene,{intensity:2.4,shadowBox:16,hemi:1.0});
+
+/* ---------- landscape layers ---------- */
+const sky=mesh(new THREE.PlaneGeometry(W+40,50),paperMat(PAL.navy)); sky.position.set(0,6,-4.5); sky.receiveShadow=false; scene.add(sky);
+const sun=mesh(new THREE.CircleGeometry(1.3,64),paperMat(PAL.amber)); sun.receiveShadow=false; scene.add(sun);
+const L=(shape,color,y,z)=>{const m=mesh(extrude(shape,.06),paperMat(color));m.position.set(0,y,z);scene.add(m);return m};
+const t=(perUnit)=>Math.round(W*perUnit);               // teeth count proportional to width
+L(cloudShape(W,1.6,7,40),'#2C4A9E',.3,-3.6);                         // far cloud band
+L(stripShape(W,6,'hills',t(.18),1.0,2),PAL.navyMid,-1.2,-3.0);      // far hills
+L(stripShape(W,6,'wave',t(.78),.14,1),PAL.teal,-2.0,-2.5);          // sea
+L(stripShape(W,6,'wave',t(1.0),.10,3),'#3E9E93',-2.35,-2.2);        // sea front wave
+L(stripShape(W,6,'plain',1,0,0),PAL.navyDeep,-2.9,-1.8);            // rail embankment
+L(stripShape(W,6,'plain',1,0,0),'#2B3A6E',-3.5,-1.3);               // road
+L(stripShape(W,6,'scallop',t(1.2),.10,4),PAL.green,-4.1,-.8);        // grass verge
+L(stripShape(W,6,'plain',1,0,0),'#26305A',-4.6,-.4);                // runway
+for(let i=-70;i<=70;i++){const d=mesh(new THREE.BoxGeometry(.5,.05,.02),paperMat(PAL.paper));d.position.set(i*1.1,-4.95,-.33);scene.add(d)}
+// drifting sky clouds
+const skyClouds=[...Array(9)].map((_,i)=>{const m=mesh(extrude(cloudShape(6+i%3*2,1.2,i+3,4+i%3),.06),paperMat(i%2?PAL.cream:'#E6E2D6'));
+  m.userData={x0:-70+i*17,y:5.7+(i%3)*.45,z:-1.0-(i%3)*.5,v:.18+(i%3)*.08};m.castShadow=false;scene.add(m);return m});
+
+/* ---------- vehicles (flat cut card pictograms) ---------- */
+const shp=pts=>{const s=new THREE.Shape();pts.forEach(([x,y],i)=>i?s.lineTo(x,y):s.moveTo(x,y));return s};
+function makeShip(){const g=new THREE.Group();g.add(mesh(extrude(shp([[-1.1,0],[1.2,0],[1.5,.45],[-1.3,.45]]),.05),paperMat(PAL.paper)));
+  g.add(mesh(extrude(shp([[-.6,.45],[.5,.45],[.5,.85],[-.6,.85]]),.05),paperMat(PAL.paper)));
+  g.add(mesh(extrude(shp([[-.1,.85],[.15,.85],[.15,1.15],[-.1,1.15]]),.05),paperMat(PAL.coral)));g.scale.setScalar(.8);return g}
+function makeTrain(){const g=new THREE.Group();[0,1.45,2.9].forEach(x=>{g.add(mesh(extrude(shp([[x,0],[x+1.35,0],[x+1.35,.55],[x,.55]]),.05),paperMat(PAL.paper)));
+  for(let w=0;w<3;w++){const b=mesh(new THREE.BoxGeometry(.22,.16,.02),paperMat(PAL.navy));b.position.set(x+.3+w*.38,.33,.06);g.add(b)}});g.scale.setScalar(.75);return g}
+function makeBus(){const g=new THREE.Group();g.add(mesh(extrude(shp([[0,.1],[1.6,.1],[1.6,.75],[0,.75]]),.05),paperMat(PAL.amber)));
+  [.35,1.25].forEach(x=>{const w=mesh(new THREE.CylinderGeometry(.13,.13,.06,24),paperMat(PAL.navyDeep));w.rotation.x=Math.PI/2;w.position.set(x,.1,.0);g.add(w)});
+  for(let w=0;w<3;w++){const b=mesh(new THREE.BoxGeometry(.32,.2,.02),paperMat(PAL.navy));b.position.set(.3+w*.45,.52,.06);g.add(b)}g.scale.setScalar(.75);return g}
+const lanes=[ // [factory, count, spacing, y, z, speed]
+  [makeShip,5,30,-2.05,-2.3,.55],[makeTrain,4,38,-2.92,-1.7,3.2],[makeBus,6,24,-3.52,-1.2,-1.6]];
+const vehicles=lanes.flatMap(([f,n,sp,y,z,v],li)=>[...Array(n)].map((_,i)=>{const g=f();g.userData={x0:-70+i*sp+li*7,y,z,v};scene.add(g);return g}));
+const wrap=x=>((x+75)%150+150)%150-75;
+
+/* ---------- beat props: trees (emisi ↓), tower (bandar udara), plane take-off ---------- */
+const trees=[...Array(9)].map((_,i)=>{const g=new THREE.Group();
+  const top=mesh(new THREE.ConeGeometry(.42,1.1,3),paperMat(i%2?PAL.green:PAL.greenDeep));top.position.y=.9;top.rotation.y=Math.PI/6;g.add(top);
+  const tr=mesh(new THREE.BoxGeometry(.1,.4,.06),paperMat('#6B4A2E'));tr.position.y=.2;g.add(tr);g.userData.i=i;scene.add(g);return g});
+const tower=new THREE.Group();{const sh=mesh(new THREE.BoxGeometry(.5,3.2,.3),paperMat(PAL.paper));sh.position.y=1.6;tower.add(sh);
+  const cab=mesh(extrude(shp([[-.75,0],[.75,0],[.95,.55],[-.95,.55]]),.3),paperMat(PAL.sky));cab.position.set(0,3.2,-.15);tower.add(cab);
+  const roof=mesh(new THREE.BoxGeometry(2.1,.14,.32),paperMat(PAL.paper));roof.position.y=3.82;tower.add(roof);}
+scene.add(tower);
+const plane=planeMesh(PAL.paper,.05); plane.scale.setScalar(2.0); scene.add(plane);
+const trail=[...Array(14)].map((_,i)=>{const c=mesh(new THREE.CircleGeometry(.08,16),paperMat(PAL.green,{transparent:true}));c.castShadow=false;scene.add(c);return c});
+
+/* ---------- copy ---------- */
+const fX=await loadFont('/assets/fonts/archivo-x-800.ttf'), fJ=await loadFont('/assets/fonts/jakarta-700.ttf'), fJm=await loadFont('/assets/fonts/jakarta-500.ttf');
+const card=new THREE.Group(); scene.add(card);
+const add=(row,x,y)=>{row.group.position.set(x,y,0);card.add(row.group);return row};
+const oto=add(letterRow(fX,'OTORITAS',{size:1.15,depth:.16,color:PAL.paper,side:PAL.navyDeep,align:'left'}),0,2.6);
+const otoS1=add(letterRow(fJ,'BANDAR UDARA',{size:.4,depth:.05,color:PAL.paper,align:'left'}),0,3.2);
+const otoS2=add(letterRow(fJ,'WILAYAH V MAKASSAR',{size:.4,depth:.05,color:PAL.paper,align:'left'}),0,2.62);
+{const W2=oto.w+.6+otoS2.w, x0=-W2/2; oto.group.position.x=x0; otoS1.group.position.x=otoS2.group.position.x=x0+oto.w+.6}
+const mem=add(letterRow(fX,'MEMPERSEMBAHKAN',{size:.62,depth:.08,color:PAL.paper,tracking:.35}),0,3.1);
+const KW=[['SINERGI'],['TRANSPORTASI','ANTARMODA'],['PENURUNAN EMISI','GAS RUMAH KACA'],['DI KAWASAN','BANDAR UDARA']];
+const kw=KW.map((lines,k)=>lines.map((s,j)=>add(letterRow(fX,s,{size:k===0?1.6:1.05,depth:.14,color:(k===2&&j===1)?PAL.green:PAL.paper,side:PAL.navyDeep}),0,lines.length===1?2.6:(3.75-j*1.35))));
+const tt1=add(letterRow(fX,'RAPAT KOORDINASI',{size:1.05,depth:.16,color:PAL.paper,side:PAL.navyDeep}),0,4.0);
+const tt2=add(letterRow(fX,'WILAYAH',{size:1.05,depth:.16,color:PAL.green,side:PAL.greenDeep}),0,2.65);
+const th1=add(letterRow(fJm,'Sinergi Transportasi Antarmoda dan Penurunan Emisi',{size:.34,depth:.03,color:PAL.paper}),0,1.75);
+const th2=add(letterRow(fJm,'Gas Rumah Kaca di Kawasan Bandar Udara',{size:.34,depth:.03,color:PAL.paper}),0,1.2);
+const d1=add(letterRow(fX,'MAKASSAR',{size:1.5,depth:.16,color:PAL.paper,side:PAL.navyDeep}),0,2.9);
+const d2=add(letterRow(fJ,'SELASA, 20 OKTOBER 2026',{size:.52,depth:.05,color:PAL.green,tracking:.12}),0,1.85);
+const logos=[logoCard('/assets/logos/kemenhub.png',2.6),logoCard('/assets/logos/dgca.png',1.95),logoCard('/assets/logos/icao_council_dark.png',2.2)];
+await Promise.all(logos.map(l=>l.userData.ready));
+{let x=-((logos[0].scale.x+logos[1].scale.x+logos[2].scale.x)+2*1.1)/2; logos.forEach(l=>{l.position.set(x+l.scale.x/2,2.7,.2);x+=l.scale.x+1.1;card.add(l)})}
+
+/* ---------- timeline ---------- */
+const CAMX=[[0,-56],[12,-34],[23,-12],[32,-2],[37.5,3],[45,8]];
+const allRows=[oto,otoS1,otoS2,mem,...kw.flat(),tt1,tt2,th1,th2,d1,d2];
+const TREE_T=17.8, TOWER_T=20.8, TAKEOFF=[14.6,20.6];
+const cxAt=tt=>keys(CAMX,tt);
+const treeX=cxAt(TREE_T)-6, towerX=cxAt(TOWER_T)+5.5, runX=cxAt(TAKEOFF[0])+1;
+function render(tt){
+  const cx=keys(CAMX,tt);
+  cam.position.set(cx,.4+Math.sin(tt*.3)*.12,21); cam.lookAt(cx,.4,0);
+  key.position.set(cx-1.2,2.2,16); key.target.position.set(cx,0,0);
+  sun.position.set(cx*.85+7.5,lerp(-2.6,.9,cubicIO(P(tt,0,6))),-3.9);              // sun rises, drifts slower than camera (far layer)
+  skyClouds.forEach(c=>{const u=c.userData;c.position.set(wrap(u.x0+u.v*tt-cx*.15)+cx*.15,u.y,u.z)});
+  vehicles.forEach(v=>{const u=v.userData;v.position.set(wrap(u.x0+u.v*tt-cx)+cx,u.y,u.z);v.scale.x=Math.abs(v.scale.x)*(u.v<0?-1:1)});
+  trees.forEach((g,i)=>{const p=backOut(P(tt,TREE_T+i*.12,TREE_T+i*.12+.6));g.visible=tt>TREE_T+i*.12;g.scale.set(1,Math.max(.001,p),1);g.position.set(treeX+i*1.6,-4.1,-.75)});
+  {const p=backOut(P(tt,TOWER_T,TOWER_T+.9));tower.visible=tt>TOWER_T;tower.scale.set(1,Math.max(.001,p),1);tower.position.set(towerX,-4.1,-.9)}
+  // plane: taxi/roll along runway, rotate, climb out of frame; trail dots fade with age
+  const pr=P(tt,TAKEOFF[0],TAKEOFF[1]), roll=Math.min(1,pr/.35), climb=Math.max(0,(pr-.35)/.65);
+  const px=runX+roll*roll*7+climb*24, py=-4.75+Math.pow(climb,1.5)*11, pang=Math.min(.45,climb*1.6);
+  plane.position.set(px,py,-.15);plane.rotation.z=pang;plane.visible=tt>TAKEOFF[0]-.2&&tt<TAKEOFF[1];
+  trail.forEach((c,i)=>{const back=(i+1)*.12, ta=tt-back, q=P(ta,TAKEOFF[0],TAKEOFF[1]);const r2=Math.min(1,q/.35),c2=Math.max(0,(q-.35)/.65);
+    c.position.set(runX+r2*r2*7+c2*24-.9,-4.75+Math.pow(c2,1.5)*11-.12,-.2);c.visible=c2>0&&tt<TAKEOFF[1]+1.4;c.material.opacity=Math.max(0,1-i/14-Math.max(0,tt-TAKEOFF[1])/1.4)});
+  // copy card follows the camera
+  card.position.set(cx,0,0);
+  allRows.forEach(r=>r.group.visible=false);
+  animRow(oto,tt,3.6,8.9); animRow(otoS1,tt,4.7,8.8,{stagger:.02}); animRow(otoS2,tt,4.9,8.8,{stagger:.02});
+  animRow(mem,tt,9.6,11.6,{stagger:.03});
+  const B=[[12.0,14.4],[14.6,17.4],[17.6,20.4],[20.6,23.0]];
+  kw.forEach((lines,k)=>lines.forEach((row,j)=>animRow(row,tt,B[k][0]+j*.25,B[k][1]-.4+j*.05)));
+  animRow(tt1,tt,23.4,31.4); animRow(tt2,tt,23.9,31.5); animRow(th1,tt,25.0,31.3,{stagger:.012,dur:.4}); animRow(th2,tt,25.3,31.3,{stagger:.012,dur:.4});
+  animRow(d1,tt,32.2,37.0,{stagger:.06}); animRow(d2,tt,33.0,37.0,{stagger:.025});
+  logos.forEach((l,i)=>{const p=backOut(P(tt,38.2+i*.35,38.9+i*.35));l.visible=tt>38.2+i*.35;l.rotation.x=(-Math.PI/2)*(1-Math.min(1,p))});
+  renderer.toneMappingExposure=1.05*(1-cubicIO(P(tt,43.4,45)))+.0001;
+}
+stage(renderer,scene,cam,render,DUR);
+</script></body></html>
