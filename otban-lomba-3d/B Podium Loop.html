@@ -1,0 +1,36 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}</style><script type="importmap">{"imports":{"three":"/vendor/three.module.min.js"}}</script><title>Winners Loop B · Podium</title></head><body>
+<!-- Winners loop B · Podium — 8 s seamless loop. ?k=1|2|3 picks the class (default 1).
+     Loop-safe motion only: trophy turns exactly 360°/8 s, camera arcs on sin(2πt/8), spot glint on a 4 s period,
+     sparks on an 8 s period → frame at t=8 ≡ t=0. Preview: `python3 -m http.server` here, open this file. -->
+<script type="module">
+import {THREE,PAL,makeRenderer,loadFont,text3D,lights,stage} from '/lib.js';
+import {useStudioEnv,goldMat,GOLD,sparks,trophy} from '/gold.js';
+import {pick,HEADER} from '/winners.js';
+const W8=pick(), LOOP=8, TAU=Math.PI*2;
+const renderer=makeRenderer(document.body), scene=new THREE.Scene(); scene.background=new THREE.Color(PAL.navy);
+useStudioEnv(renderer,scene,1.5);
+const cam=new THREE.PerspectiveCamera(32,16/9,.1,100);
+lights(scene,{key:[2,9,5],intensity:2.0,hemi:.45,shadowBox:8});
+const fill=new THREE.DirectionalLight('#ffe9c2',1.4); fill.position.set(-2,3,10); scene.add(fill);   // warms the trophy's front face
+const floor=new THREE.Mesh(new THREE.CircleGeometry(30,64),new THREE.MeshStandardMaterial({color:'#17285E',roughness:.6}));floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+const ped=new THREE.Mesh(new THREE.BoxGeometry(7.4,1.5,2.2),new THREE.MeshStandardMaterial({color:'#24408A',roughness:.45,metalness:.2}));ped.position.y=.75;ped.castShadow=ped.receiveShadow=true;scene.add(ped);
+const rim=new THREE.Mesh(new THREE.BoxGeometry(7.5,.08,2.3),goldMat());rim.position.y=1.52;scene.add(rim);
+const tro=trophy(goldMat(GOLD.face,.22));tro.position.set(0,1.56,0);tro.scale.setScalar(1.05);scene.add(tro);
+const spot=new THREE.SpotLight('#fff3d6',70,30,.42,.5,1.2);spot.position.set(0,10,3);spot.target=tro;spot.castShadow=true;scene.add(spot);
+const glint=new THREE.PointLight('#fff6dd',0,6,1.5);scene.add(glint);
+const fX=await loadFont('/assets/fonts/archivo-x-800.ttf'), fJ=await loadFont('/assets/fonts/jakarta-700.ttf');
+const Wm=new THREE.MeshStandardMaterial({color:'#F4F6FB',roughness:.5}), G=[goldMat(),goldMat(GOLD.side,.35)];
+const fit=(m,w)=>{const k=Math.min(1,w/m.userData.w);m.scale.set(k,k,1);return m};
+const name=fit(text3D(fX,W8.name,{size:.3,depth:.04,mats:Wm,bevel:0}),6.8);name.position.set(0,.88,1.12);scene.add(name);
+const cls=fit(text3D(fJ,'JUARA '+W8.cls,{size:.28,depth:.04,mats:G,bevel:0}),6.4);cls.position.set(0,.42,1.12);scene.add(cls);
+const t1=fit(text3D(fJ,HEADER[0],{size:.3,depth:.03,mats:Wm,bevel:0}),9);t1.position.set(0,6.35,-1.4);scene.add(t1);
+const t2=text3D(fJ,HEADER[1],{size:.22,depth:.03,mats:G,bevel:0});t2.position.set(0,5.9,-1.4);scene.add(t2);
+const sp=sparks(scene,120,7,[16,12,6]);
+stage(renderer,scene,cam,t=>{
+  const a=Math.sin(t/LOOP*TAU)*.32;                         // camera arc ±18°
+  cam.position.set(Math.sin(a)*13.4,2.5+Math.sin(t/LOOP*TAU*2)*.12,Math.cos(a)*13.4); cam.lookAt(0,2.9,0);
+  tro.rotation.y=t/LOOP*TAU;                                // one full turn per loop
+  const g=(t%4)/4; glint.position.set(-2+g*4,3.6,2.2); glint.intensity=Math.sin(g*Math.PI)*25;   // glint sweeps across the cup every 4 s
+  sp(t,LOOP);
+},LOOP);
+</script></body></html>

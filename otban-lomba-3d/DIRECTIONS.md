@@ -1,6 +1,6 @@
 # Lomba Kebersihan & Kerapihan — winners loops (3D) · direction boards
 
-Status: **WAITING FOR CLIENT CHOICE.** Reference: 0_Champion_League_Logo (vertical 10 s: 3D gold letters drop in one by one,
+Status: **B + C chosen** — Kelas I examples rendered (Winners-Loop-*-Kelas1-8s.mp4). Other classes: open with ?k=2 or ?k=3 and re-render. Reference: 0_Champion_League_Logo (vertical 10 s: 3D gold letters drop in one by one,
 glint sweep, embers + smoke, letters fly out = loop). Sample copy = Kelas I winner.
 
 | | Direction | Frame | Loop (8 s planned) |
