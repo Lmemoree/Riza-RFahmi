@@ -1,0 +1,25 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}</style><script type="importmap">{"imports":{"three":"/vendor/three.module.min.js"}}</script><title>Lomba B · Podium</title></head><body>
+<!-- Direction B "Podium": a lathe-turned gold trophy on a navy plinth under a spotlight; the winner's name is engraved on
+     the plinth face, the class sits above. Camera orbits slowly; confetti/sparks fall. Trophy = the award being handed over. -->
+<script type="module">
+import {THREE,PAL,makeRenderer,loadFont,text3D,lights,stage,paperMat} from '/lib.js';
+import {useStudioEnv,goldMat,GOLD,sparks,trophy} from '/gold.js';
+const renderer=makeRenderer(document.body), scene=new THREE.Scene(); scene.background=new THREE.Color(PAL.navy);
+useStudioEnv(renderer,scene,1.3);
+const cam=new THREE.PerspectiveCamera(32,16/9,.1,100); cam.position.set(1.6,1.9,14.5); cam.lookAt(0,2.4,0);
+const key=lights(scene,{key:[2,9,5],intensity:2.2,hemi:.35,shadowBox:8});
+const floor=new THREE.Mesh(new THREE.CircleGeometry(30,64),new THREE.MeshStandardMaterial({color:'#17285E',roughness:.6}));floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+const ped=new THREE.Mesh(new THREE.BoxGeometry(7.4,1.5,2.2),new THREE.MeshStandardMaterial({color:'#24408A',roughness:.45,metalness:.2}));ped.position.y=.75;ped.castShadow=ped.receiveShadow=true;scene.add(ped);
+const rim=new THREE.Mesh(new THREE.BoxGeometry(7.5,.08,2.3),goldMat());rim.position.y=1.52;scene.add(rim);
+const tro=trophy(goldMat(GOLD.face,.22));tro.position.set(0,1.56,0);tro.scale.setScalar(1.05);scene.add(tro);
+const spot=new THREE.SpotLight('#fff3d6',60,30,.42,.5,1.2);spot.position.set(0,10,3);spot.target=tro;spot.castShadow=true;scene.add(spot);
+const fX=await loadFont('/assets/fonts/archivo-x-800.ttf'), fJ=await loadFont('/assets/fonts/jakarta-700.ttf');
+const W=new THREE.MeshStandardMaterial({color:'#F4F6FB',roughness:.5}), G=[goldMat(),goldMat(GOLD.side,.35)];
+const fit=(m,w)=>{const k=Math.min(1,w/m.userData.w);m.scale.set(k,k,1);return m};
+const name=text3D(fX,'UPBU MUTIARA SIS AL-JUFRI PALU',{size:.3,depth:.04,mats:W,bevel:0});name.position.set(0,.85,1.12);scene.add(fit(name,6.8));
+const cls=text3D(fJ,'JUARA BANDAR UDARA KELAS I',{size:.28,depth:.04,mats:G,bevel:0});cls.position.set(0,.42,1.12);scene.add(fit(cls,6.2));
+const t1=text3D(fJ,'LOMBA KEBERSIHAN DAN KERAPIHAN BANDAR UDARA',{size:.3,depth:.03,mats:W,bevel:0});t1.position.set(0,5.55,-1);scene.add(fit(t1,9));
+const t2=text3D(fJ,'WILAYAH KERJA OTBAN V',{size:.22,depth:.03,mats:G,bevel:0});t2.position.set(0,5.1,-1);scene.add(t2);
+const sp=sparks(scene,120,7,[16,12,6]);
+stage(renderer,scene,cam,t=>{sp(t+2,8)},8);
+</script></body></html>

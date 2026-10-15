@@ -1,0 +1,29 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}</style><script type="importmap">{"imports":{"three":"/vendor/three.module.min.js"}}</script><title>Lomba C · Medal</title></head><body>
+<!-- Direction C "Medal": a large gold medallion struck with the class numeral turns on its axis left of frame (like a coin
+     catching light), ribbon tails in navy/white; the winner block sits right in clean type. Calm, ceremonial. -->
+<script type="module">
+import {THREE,PAL,makeRenderer,loadFont,text3D,lights,stage} from '/lib.js';
+import {useStudioEnv,goldMat,GOLD,sparks} from '/gold.js';
+const renderer=makeRenderer(document.body), scene=new THREE.Scene(); scene.background=new THREE.Color(PAL.navy);
+useStudioEnv(renderer,scene,1.4);
+const cam=new THREE.PerspectiveCamera(30,16/9,.1,100); cam.position.set(0,0,15); cam.lookAt(0,0,0);
+lights(scene,{key:[-4,5,8],intensity:1.8,hemi:.4});
+const fX=await loadFont('/assets/fonts/archivo-x-800.ttf'), fJ=await loadFont('/assets/fonts/jakarta-700.ttf');
+const medal=new THREE.Group();medal.position.set(-4.3,-.1,0);scene.add(medal);
+const disc=new THREE.Mesh(new THREE.CylinderGeometry(2.3,2.3,.32,128),goldMat(GOLD.face,.3));disc.rotation.x=Math.PI/2;medal.add(disc);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(2.05,.07,16,128),goldMat(GOLD.side,.25));ring.position.z=.17;medal.add(ring);
+const num=text3D(fX,'I',{size:1.9,depth:.12,mats:[goldMat(GOLD.face,.18),goldMat(GOLD.deep,.3)],bevel:.02});num.position.set(0,.15,.17);medal.add(num);
+const kel=text3D(fJ,'KELAS',{size:.3,depth:.05,mats:goldMat(GOLD.deep,.3),bevel:0});kel.position.set(0,-1.35,.17);medal.add(kel);
+[-1,1].forEach(s=>{const rb=new THREE.Mesh(new THREE.BoxGeometry(.9,3.2,.05),new THREE.MeshStandardMaterial({color:s<0?'#F4F6FB':'#152657',roughness:.6}));rb.position.set(s*.55,3.4,-.3);rb.rotation.z=s*.22;medal.add(rb)});
+medal.rotation.y=-.45;
+const W=new THREE.MeshStandardMaterial({color:'#F4F6FB',roughness:.5}), G=[goldMat(),goldMat(GOLD.side,.35)];
+const L=(m,x,y)=>{m.geometry.translate(m.userData.w/2,0,0);m.position.set(x,y,0);scene.add(m);return m};
+const fit=(m,w)=>{const k=Math.min(1,w/m.userData.w);m.scale.set(k,k,1);return m};
+L(text3D(fJ,'LOMBA KEBERSIHAN DAN KERAPIHAN BANDAR UDARA',{size:.2,depth:.02,mats:W,bevel:0}),-1.2,2.4);
+L(text3D(fJ,'WILAYAH KERJA OTBAN V',{size:.2,depth:.02,mats:goldMat(),bevel:0}),-1.2,2.0);
+L(fit(text3D(fX,'JUARA',{size:1.1,depth:.3,mats:G,bevel:.02}),6.6),-1.3,.9);
+L(fit(text3D(fX,'BANDAR UDARA KELAS I',{size:.4,depth:.12,mats:G,bevel:.01}),6.6),-1.25,-.2);
+const n=text3D(fX,'UPBU MUTIARA SIS AL-JUFRI PALU',{size:.34,depth:.06,mats:W,bevel:0});fit(n,6.6);n.geometry.translate(n.userData.w/2,0,0);n.position.set(-1.25,-1.15,0);scene.add(n);
+const sp=sparks(scene,90,5,[18,10,6]);
+stage(renderer,scene,cam,t=>{sp(t,8);medal.rotation.y=-.45+Math.sin(t*.8)*.25},8);
+</script></body></html>

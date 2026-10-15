@@ -1,0 +1,23 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}</style><script type="importmap">{"imports":{"three":"/vendor/three.module.min.js"}}</script><title>Lomba A · Gold Drop</title></head><body>
+<!-- Direction A "Gold Drop": the reference's grammar (chunky 3D letters dropping in one by one, glint sweep, embers over
+     smoke) translated to the event: brushed-gold letters on navy, gold sparks, blue fog. Centered stack for a stage screen. -->
+<script type="module">
+import {THREE,PAL,makeRenderer,loadFont,text3D,lights,stage} from '/lib.js';
+import {useStudioEnv,goldMat,GOLD,sparks,fogBand} from '/gold.js';
+const renderer=makeRenderer(document.body), scene=new THREE.Scene(); scene.background=new THREE.Color('#162a63');
+useStudioEnv(renderer,scene,1.4);
+const cam=new THREE.PerspectiveCamera(30,16/9,.1,100); cam.position.set(0,.2,15); cam.lookAt(0,.1,0);
+lights(scene,{key:[-3,5,9],intensity:1.6,hemi:.4});
+const gc=document.createElement('canvas');gc.width=gc.height=256;{const g=gc.getContext('2d'),gr=g.createRadialGradient(128,128,0,128,128,128);gr.addColorStop(0,'rgba(80,120,230,.6)');gr.addColorStop(1,'rgba(80,120,230,0)');g.fillStyle=gr;g.fillRect(0,0,256,256)}
+const glow=new THREE.Mesh(new THREE.PlaneGeometry(22,16),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(gc),transparent:true,depthWrite:false}));glow.position.z=-3;scene.add(glow);
+const fX=await loadFont('/assets/fonts/archivo-x-800.ttf'), fJ=await loadFont('/assets/fonts/jakarta-700.ttf');
+const G=[goldMat(GOLD.face,.25),goldMat(GOLD.side,.35)], W=new THREE.MeshStandardMaterial({color:'#F4F6FB',roughness:.5,metalness:.1});
+const fit=(m,w)=>{const k=Math.min(1,w/m.userData.w);m.scale.set(k,k,1);return m};
+const hdr=text3D(fJ,'LOMBA KEBERSIHAN DAN KERAPIHAN BANDAR UDARA  ·  WILAYAH KERJA OTBAN V',{size:.2,depth:.02,mats:W});hdr.position.set(0,3.0,0);scene.add(fit(hdr,11));
+const j=text3D(fX,'JUARA',{size:1.55,depth:.45,mats:G,bevel:.03});j.position.set(0,1.45,0);j.rotation.x=-.05;scene.add(j);
+const k=text3D(fX,'BANDAR UDARA KELAS I',{size:.55,depth:.2,mats:G,bevel:.02});k.position.set(0,-.05,0);scene.add(fit(k,10));
+const line=new THREE.Mesh(new THREE.BoxGeometry(6,.04,.04),goldMat());line.position.set(0,-.75,0);scene.add(line);
+const w=text3D(fX,'UPBU MUTIARA SIS AL-JUFRI PALU',{size:.48,depth:.12,mats:[W,new THREE.MeshStandardMaterial({color:'#9fb0e0'})],bevel:.01});w.position.set(0,-1.45,.2);scene.add(fit(w,11.5));
+const sp=sparks(scene,140,3,[18,10,6]); const fog=fogBand(scene,'#4a6bd0',-4.6,3);
+stage(renderer,scene,cam,t=>{sp(t+3,8);fog(t+3,8)},8);
+</script></body></html>
