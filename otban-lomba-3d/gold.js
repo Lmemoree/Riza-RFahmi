@@ -65,41 +65,61 @@ function beamTex() {                    // trapezoid light cone fading downward,
   }
   _beam = new THREE.CanvasTexture(c); return _beam;
 }
-// Theater backdrop (client ref: curtains + pendant lamps + spot pools), in the navy palette.
-// Returns update(t, period) — curtain sway is periodic so loops stay seamless.
+// Theater backdrop (client ref: curtains + pendant lamps + light beams), in the navy palette.
+// The scene background (#1F3375) is the back wall. Returns update(t, period).
+// Every motion uses whole cycles per `period` (or circular distance for dips) → t=period ≡ t=0, seamless loops.
 export function theaterBackdrop(scene, { width = 22, wallZ = -4, curtainX = 8.2, top = 4.15, lampsX = [-4.3, 0, 4.3] } = {}) {
-  const NAVY = '#1F3375';
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(width + 10, 16), new THREE.MeshStandardMaterial({ color: '#142453', roughness: .95 }));
-  wall.position.set(0, 0, wallZ); wall.receiveShadow = false;   // no ghost copies of the type on the wall scene.add(wall);
+  const NAVY = '#1F3375', TAU = Math.PI * 2;
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(width + 10, 12), new THREE.MeshStandardMaterial({ color: '#16285c', roughness: .35, metalness: .2 }));
   floor.rotation.x = -Math.PI / 2; floor.position.set(0, -4.2, wallZ + 6); scene.add(floor);
-  // velvet: physical material with sheen; folds = displaced plane
+  // velvet: physical material with sheen; folds = displaced plane (enough rows so the hem can move independently of the rail)
   const velvet = new THREE.MeshPhysicalMaterial({ color: NAVY, roughness: .75, sheen: 1, sheenColor: new THREE.Color('#7f9cff'), sheenRoughness: .45 });
+  const W = 5.2, H = 12;
   const curtains = [-1, 1].map(side => {
-    const W = 5.2, H = 12, geo = new THREE.PlaneGeometry(W, H, 220, 1); const pos = geo.attributes.position;
-    const base = new Float32Array(pos.count);
-    for (let i = 0; i < pos.count; i++) { const x = pos.getX(i); base[i] = .22 * Math.sin(x * 5.2) + .08 * Math.sin(x * 13.7 + 1.3); pos.setZ(i, base[i]); }
-    geo.computeVertexNormals();
+    const geo = new THREE.PlaneGeometry(W, H, 200, 30); const pos = geo.attributes.position;
+    const x0 = new Float32Array(pos.count), y0 = new Float32Array(pos.count), fold = new Float32Array(pos.count);
+    for (let i = 0; i < pos.count; i++) { x0[i] = pos.getX(i); y0[i] = pos.getY(i); fold[i] = .22 * Math.sin(x0[i] * 5.2) + .08 * Math.sin(x0[i] * 13.7 + 1.3); }
     const m = new THREE.Mesh(geo, velvet); m.position.set(side * curtainX, 0, wallZ + 1.6); m.castShadow = true; m.receiveShadow = true;
-    m.userData = { base, side }; scene.add(m); return m;
+    m.userData = { x0, y0, fold, side }; scene.add(m); return m;
   });
-  // pendant lamps: black lathe shade + glowing bulb disc + cord, each with a spotlight washing the wall
+  // pendant lamps: black lathe shade + glowing bulb + cord, spotlight + visible beam on the wall
   const shadePts = [[.12, .55], [.16, .5], [.22, .2], [.55, -.18], [.6, -.25], [.5, -.22], [.2, .12], [.1, .5]].map(([r, h]) => new THREE.Vector2(r, h));
-  const lamps = lampsX.map(x => {
-    const g = new THREE.Group(); g.position.set(x, top, wallZ + 1.2);
+  const lamps = lampsX.map((x, k) => {
+    const pivot = new THREE.Group(); pivot.position.set(x, top + 3.2, wallZ + 1.2); scene.add(pivot);   // swing from the ceiling
+    const g = new THREE.Group(); g.position.y = -3.2; pivot.add(g);
     g.add(new THREE.Mesh(new THREE.LatheGeometry(shadePts, 48), new THREE.MeshStandardMaterial({ color: '#0b1022', roughness: .4, metalness: .6, side: THREE.DoubleSide })));
-    const bulb = new THREE.Mesh(new THREE.CircleGeometry(.48, 40), new THREE.MeshBasicMaterial({ color: '#fff2d2', toneMapped: false })); bulb.rotation.x = Math.PI / 2; bulb.position.y = -.2; g.add(bulb);
-    const cord = new THREE.Mesh(new THREE.CylinderGeometry(.015, .015, 3, 6), new THREE.MeshBasicMaterial({ color: '#0b1022' })); cord.position.y = 2; g.add(cord);
-    scene.add(g);
+    const bulbMat = new THREE.MeshBasicMaterial({ color: '#fff2d2', toneMapped: false });
+    const bulb = new THREE.Mesh(new THREE.CircleGeometry(.48, 40), bulbMat); bulb.rotation.x = Math.PI / 2; bulb.position.y = -.2; g.add(bulb);
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(.015, .015, 3.2, 6), new THREE.MeshBasicMaterial({ color: '#0b1022' })); cord.position.y = 1.6 + .5; g.add(cord);
     const sp = new THREE.SpotLight('#ffe9c4', 160, 14, .5, .7, 1.2); sp.position.set(x, top - .3, wallZ + 1.2); sp.target.position.set(x * .9, -1.5, wallZ); scene.add(sp, sp.target);
-    // visible wash on the wall: a soft cone-shaped beam texture (the spotlight alone only grazes the wall)
-    const beam = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 7.5), new THREE.MeshBasicMaterial({ map: beamTex(), color: '#ffe3b0', transparent: true, opacity: .32, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
-    beam.position.set(x, top - .3 - 3.75, wallZ + .02); scene.add(beam);
-    return g;
+    const beamMat = new THREE.MeshBasicMaterial({ map: beamTex(), color: '#ffe3b0', transparent: true, opacity: .32, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const beam = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 7.5), beamMat); beam.position.set(x, top - .3 - 3.75, wallZ + .02); scene.add(beam);
+    // each lamp: its own shimmer phases + two quick brown-out dips at different moments
+    const dips = [[.9 + k * 2.1, .16], [5.3 - k * 1.3, .09]];   // [time (s), depth]
+    return { pivot, bulbMat, sp, beam, beamMat, k, dips, x };
   });
-  return (t, period) => curtains.forEach((c, k) => {          // slow breathing sway of the folds
-    const pos = c.geometry.attributes.position, ph = Math.sin((t / period) * Math.PI * 2 + k * 1.7);
-    for (let i = 0; i < pos.count; i++) { const x = pos.getX(i), y = pos.getY(i); pos.setZ(i, c.userData.base[i] * (1 + .12 * ph) + .06 * ph * Math.sin(x * 2 + y * .3)); }
-    pos.needsUpdate = true; c.geometry.computeVertexNormals();
-  });
+  const bulbCol = new THREE.Color('#fff2d2'), dim = new THREE.Color('#7a5a30');
+  return (t, period) => {
+    const u = t / period;
+    // curtains: rail fixed, hem free; a ripple travels along the folds (2 whole cycles per loop) + slow sway
+    curtains.forEach((c, k) => {
+      const { x0, y0, fold, side } = c.userData, pos = c.geometry.attributes.position;
+      const breathe = Math.sin(u * TAU + k * 1.7), swayX = .18 * Math.sin(u * TAU + k * 2.1);
+      for (let i = 0; i < pos.count; i++) {
+        const free = Math.pow((H / 2 - y0[i]) / H, 1.6);                   // 0 at the rail → 1 at the hem
+        const ripple = .16 * Math.sin(x0[i] * 2.4 - u * TAU * 2 + y0[i] * .35 + k * 3) * (.25 + free);
+        pos.setZ(i, fold[i] * (1 + .15 * breathe) + ripple);
+        pos.setX(i, x0[i] + swayX * free + .05 * free * Math.sin(u * TAU * 3 + y0[i] * .6));
+      }
+      pos.needsUpdate = true; c.geometry.computeVertexNormals();
+    });
+    // lamps: flicker = fast shimmer (integer cycles/loop) + gaussian brown-out dips on circular time; gentle pendulum swing
+    lamps.forEach(L => {
+      let f = 1 - .05 * (.5 + .5 * Math.sin(u * TAU * 13 + L.k * 1.9)) - .04 * (.5 + .5 * Math.sin(u * TAU * 29 + L.k * 4.1)) - .03 * (.5 + .5 * Math.sin(u * TAU * 47 + L.k));
+      L.dips.forEach(([td, depth]) => { let d = Math.abs(t - td) % period; d = Math.min(d, period - d); f -= depth * 4 * Math.exp(-d * d / (2 * .045 * .045)) * (d < .25 ? 1 : 0) + depth * .6 * Math.exp(-((d - .12) ** 2) / (2 * .03 * .03)); });
+      f = Math.max(.15, f);
+      L.bulbMat.color.copy(dim).lerp(bulbCol, f); L.sp.intensity = 160 * f * f; L.beamMat.opacity = .32 * f * f;
+      L.pivot.rotation.z = .025 * Math.sin(u * TAU + L.k * 1.3);
+    });
+  };
 }
