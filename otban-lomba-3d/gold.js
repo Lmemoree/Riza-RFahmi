@@ -52,3 +52,54 @@ export function trophy(mat) {
   return g;
 }
 export { PAL };
+
+let _beam = null;
+function beamTex() {                    // trapezoid light cone fading downward, soft edges
+  if (_beam) return _beam;
+  const c = document.createElement('canvas'); c.width = 256; c.height = 512; const g = c.getContext('2d');
+  for (let y = 0; y < 512; y++) {
+    const v = y / 511, half = 18 + v * 110, a = Math.pow(1 - v, 1.4);
+    const gr = g.createLinearGradient(128 - half, 0, 128 + half, 0);
+    gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(.5, `rgba(255,255,255,${a})`); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(128 - half, y, half * 2, 1);
+  }
+  _beam = new THREE.CanvasTexture(c); return _beam;
+}
+// Theater backdrop (client ref: curtains + pendant lamps + spot pools), in the navy palette.
+// Returns update(t, period) — curtain sway is periodic so loops stay seamless.
+export function theaterBackdrop(scene, { width = 22, wallZ = -4, curtainX = 8.2, top = 4.15, lampsX = [-4.3, 0, 4.3] } = {}) {
+  const NAVY = '#1F3375';
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(width + 10, 16), new THREE.MeshStandardMaterial({ color: '#142453', roughness: .95 }));
+  wall.position.set(0, 0, wallZ); wall.receiveShadow = false;   // no ghost copies of the type on the wall scene.add(wall);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(width + 10, 12), new THREE.MeshStandardMaterial({ color: '#16285c', roughness: .35, metalness: .2 }));
+  floor.rotation.x = -Math.PI / 2; floor.position.set(0, -4.2, wallZ + 6); scene.add(floor);
+  // velvet: physical material with sheen; folds = displaced plane
+  const velvet = new THREE.MeshPhysicalMaterial({ color: NAVY, roughness: .75, sheen: 1, sheenColor: new THREE.Color('#7f9cff'), sheenRoughness: .45 });
+  const curtains = [-1, 1].map(side => {
+    const W = 5.2, H = 12, geo = new THREE.PlaneGeometry(W, H, 220, 1); const pos = geo.attributes.position;
+    const base = new Float32Array(pos.count);
+    for (let i = 0; i < pos.count; i++) { const x = pos.getX(i); base[i] = .22 * Math.sin(x * 5.2) + .08 * Math.sin(x * 13.7 + 1.3); pos.setZ(i, base[i]); }
+    geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, velvet); m.position.set(side * curtainX, 0, wallZ + 1.6); m.castShadow = true; m.receiveShadow = true;
+    m.userData = { base, side }; scene.add(m); return m;
+  });
+  // pendant lamps: black lathe shade + glowing bulb disc + cord, each with a spotlight washing the wall
+  const shadePts = [[.12, .55], [.16, .5], [.22, .2], [.55, -.18], [.6, -.25], [.5, -.22], [.2, .12], [.1, .5]].map(([r, h]) => new THREE.Vector2(r, h));
+  const lamps = lampsX.map(x => {
+    const g = new THREE.Group(); g.position.set(x, top, wallZ + 1.2);
+    g.add(new THREE.Mesh(new THREE.LatheGeometry(shadePts, 48), new THREE.MeshStandardMaterial({ color: '#0b1022', roughness: .4, metalness: .6, side: THREE.DoubleSide })));
+    const bulb = new THREE.Mesh(new THREE.CircleGeometry(.48, 40), new THREE.MeshBasicMaterial({ color: '#fff2d2', toneMapped: false })); bulb.rotation.x = Math.PI / 2; bulb.position.y = -.2; g.add(bulb);
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(.015, .015, 3, 6), new THREE.MeshBasicMaterial({ color: '#0b1022' })); cord.position.y = 2; g.add(cord);
+    scene.add(g);
+    const sp = new THREE.SpotLight('#ffe9c4', 160, 14, .5, .7, 1.2); sp.position.set(x, top - .3, wallZ + 1.2); sp.target.position.set(x * .9, -1.5, wallZ); scene.add(sp, sp.target);
+    // visible wash on the wall: a soft cone-shaped beam texture (the spotlight alone only grazes the wall)
+    const beam = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 7.5), new THREE.MeshBasicMaterial({ map: beamTex(), color: '#ffe3b0', transparent: true, opacity: .32, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+    beam.position.set(x, top - .3 - 3.75, wallZ + .02); scene.add(beam);
+    return g;
+  });
+  return (t, period) => curtains.forEach((c, k) => {          // slow breathing sway of the folds
+    const pos = c.geometry.attributes.position, ph = Math.sin((t / period) * Math.PI * 2 + k * 1.7);
+    for (let i = 0; i < pos.count; i++) { const x = pos.getX(i), y = pos.getY(i); pos.setZ(i, c.userData.base[i] * (1 + .12 * ph) + .06 * ph * Math.sin(x * 2 + y * .3)); }
+    pos.needsUpdate = true; c.geometry.computeVertexNormals();
+  });
+}

@@ -1,16 +1,17 @@
 <!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}</style><script type="importmap">{"imports":{"three":"/vendor/three.module.min.js"}}</script><title>Winners Loop C · Medal</title></head><body>
-<!-- Winners loop C · Medal — 8 s seamless loop. ?k=1|2|3 picks the class (default 1).
+<!-- Winners loop C · Medal (v2: theatre backdrop — navy velvet curtains, pendant lamps, spot pools) — 8 s seamless loop. ?k=1|2|3 picks the class (default 1).
      Medal rocks on sin(2πt/8) and makes one full 360° turn per loop (numeral struck on both faces), a glint light sweeps
      across the type every 4 s, sparks on an 8 s period → t=8 ≡ t=0. -->
 <script type="module">
 import {THREE,PAL,makeRenderer,loadFont,text3D,lights,stage} from '/lib.js';
-import {useStudioEnv,goldMat,GOLD,sparks} from '/gold.js';
+import {useStudioEnv,goldMat,GOLD,sparks,theaterBackdrop} from '/gold.js';
 import {pick,HEADER} from '/winners.js';
 const W8=pick(), LOOP=8, TAU=Math.PI*2;
 const renderer=makeRenderer(document.body), scene=new THREE.Scene(); scene.background=new THREE.Color(PAL.navy);
 useStudioEnv(renderer,scene,1.4);
 const cam=new THREE.PerspectiveCamera(30,16/9,.1,100); cam.position.set(0,0,15); cam.lookAt(0,0,0);
 lights(scene,{key:[-4,5,8],intensity:1.8,hemi:.4});
+const stageSet=theaterBackdrop(scene);   // client request: theatre curtains + pendant lamps behind the medal
 const fX=await loadFont('/assets/fonts/archivo-x-800.ttf'), fJ=await loadFont('/assets/fonts/jakarta-700.ttf');
 const holder=new THREE.Group();holder.position.set(-4.3,-.1,0);scene.add(holder);
 const medal=new THREE.Group();holder.add(medal);
@@ -37,6 +38,6 @@ stage(renderer,scene,cam,t=>{
   const u=t/LOOP, e=u-Math.sin(u*TAU)/TAU;
   medal.rotation.y=-.35+e*TAU; holder.rotation.z=Math.sin(u*TAU)*.04; holder.position.y=-.1+Math.sin(u*TAU*2)*.08;
   const g=(t%4)/4; glint.position.set(-1.6+g*8.4,.6,1.6); glint.intensity=Math.sin(g*Math.PI)*22;
-  sp(t,LOOP);
+  sp(t,LOOP); stageSet(t,LOOP);
 },LOOP);
 </script></body></html>
