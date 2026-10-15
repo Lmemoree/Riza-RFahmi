@@ -1,9 +1,11 @@
 <!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}</style><script type="importmap">{"imports":{"three":"/vendor/three.module.min.js"}}</script><title>Winners Loop C · Medal</title></head><body>
-<!-- Winners loop C · Medal (v2: theatre backdrop — navy velvet curtains, pendant lamps, spot pools) — 8 s seamless loop. ?k=1|2|3 picks the class (default 1).
-     Medal rocks on sin(2πt/8) and makes one full 360° turn per loop (numeral struck on both faces), a glint light sweeps
-     across the type every 4 s, sparks on an 8 s period → t=8 ≡ t=0. -->
+<!-- Winners loop C · Medal (v4: Champions-League-style type) — 8 s seamless loop. ?k=1|2|3 picks the class (default 1).
+     Title type: Squada One (blocky condensed, like the client's reference), gold face + red-copper sides.
+     Motion (reference): each letter flies in from behind the camera, big and tumbling, and settles into the line one by one;
+     a glint streak sweeps the type; at the end the letters fly back out past the camera (last letter first).
+     t=0 and t=8 both have no title letters on screen → seamless. Medal, curtains, lamps, sparks keep whole cycles per loop. -->
 <script type="module">
-import {THREE,PAL,makeRenderer,loadFont,text3D,lights,stage} from '/lib.js';
+import {THREE,PAL,makeRenderer,loadFont,text3D,lights,stage,letterRow,P,clamp,backOut,expoIn} from '/lib.js';
 import {useStudioEnv,goldMat,GOLD,sparks,theaterBackdrop} from '/gold.js';
 import {pick,HEADER} from '/winners.js';
 const W8=pick(), LOOP=8, TAU=Math.PI*2;
@@ -11,33 +13,69 @@ const renderer=makeRenderer(document.body), scene=new THREE.Scene(); scene.backg
 useStudioEnv(renderer,scene,1.4);
 const cam=new THREE.PerspectiveCamera(30,16/9,.1,100); cam.position.set(0,0,15); cam.lookAt(0,0,0);
 lights(scene,{key:[-4,5,8],intensity:1.8,hemi:.4});
-const stageSet=theaterBackdrop(scene);   // client request: theatre curtains + pendant lamps behind the medal
-const fX=await loadFont('/assets/fonts/archivo-x-800.ttf'), fJ=await loadFont('/assets/fonts/jakarta-700.ttf');
+const stageSet=theaterBackdrop(scene);   // theatre curtains + pendant lamps behind the medal
+const fX=await loadFont('/assets/fonts/archivo-x-800.ttf'), fJ=await loadFont('/assets/fonts/jakarta-700.ttf'), fS=await loadFont('/assets/fonts/squada-one.ttf');
+/* ---------- medal (unchanged) ---------- */
 const holder=new THREE.Group();holder.position.set(-4.3,-.1,0);scene.add(holder);
 const medal=new THREE.Group();holder.add(medal);
 const disc=new THREE.Mesh(new THREE.CylinderGeometry(2.3,2.3,.32,128),goldMat(GOLD.face,.3));disc.rotation.x=Math.PI/2;medal.add(disc);
-[1,-1].forEach(side=>{           // both faces struck, so a full turn never shows a blank back
+[1,-1].forEach(side=>{
   const f=new THREE.Group();f.rotation.y=side>0?0:Math.PI;medal.add(f);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(2.05,.07,16,128),goldMat(GOLD.side,.25));ring.position.z=.17;f.add(ring);
-  const num=text3D(fX,W8.num,{size:W8.num.length>2?1.35:1.9,depth:.12,mats:[goldMat(GOLD.face,.18),goldMat(GOLD.deep,.3)],bevel:.02});num.position.set(0,.15,.17);f.add(num);
-  const kel=text3D(fJ,'KELAS',{size:.3,depth:.05,mats:goldMat(GOLD.deep,.3),bevel:0});kel.position.set(0,-1.35,.17);f.add(kel);
+  const num=text3D(fS,W8.num,{size:W8.num.length>2?1.6:2.2,depth:.12,mats:[goldMat(GOLD.face,.18),goldMat(GOLD.deep,.3)],bevel:.02});num.position.set(0,.15,.17);f.add(num);
+  const kel=text3D(fS,'KELAS',{size:.36,depth:.05,mats:goldMat(GOLD.deep,.3),bevel:0});kel.position.set(0,-1.35,.17);f.add(kel);
 });
 [-1,1].forEach(s=>{const rb=new THREE.Mesh(new THREE.BoxGeometry(.9,3.2,.05),new THREE.MeshStandardMaterial({color:s<0?'#F4F6FB':'#152657',roughness:.6}));rb.position.set(s*.55,3.4,-.3);rb.rotation.z=s*.22;holder.add(rb)});
-const Wm=new THREE.MeshStandardMaterial({color:'#F4F6FB',roughness:.5}), G=[goldMat(),goldMat(GOLD.side,.35)];
+/* ---------- header (static, small reading text) ---------- */
+const Wm=new THREE.MeshStandardMaterial({color:'#F4F6FB',roughness:.5});
 const fit=(m,w)=>{const k=Math.min(1,w/m.userData.w);m.scale.set(k,k,1);return m};
-const L=(m,x,y)=>{m.geometry.translate(m.userData.w/2,0,0);m.position.set(x,y,0);scene.add(m);return m};
-L(fit(text3D(fJ,HEADER[0],{size:.2,depth:.02,mats:Wm,bevel:0}),6.6),-1.2,2.4);
-L(text3D(fJ,HEADER[1],{size:.2,depth:.02,mats:goldMat(),bevel:0}),-1.2,2.0);
-L(fit(text3D(fX,'JUARA',{size:1.1,depth:.3,mats:G,bevel:.02}),6.6),-1.3,.9);
-L(fit(text3D(fX,W8.cls,{size:.4,depth:.12,mats:G,bevel:.01}),6.6),-1.25,-.2);
-L(fit(text3D(fX,W8.name,{size:.34,depth:.06,mats:Wm,bevel:0}),6.6),-1.25,-1.15);
-const glint=new THREE.PointLight('#fff1cf',0,5,1.4);scene.add(glint);
-const sp=sparks(scene,90,5,[18,10,6]);
+const L=(m,x,y)=>{m.geometry.translate(m.userData.w/2,0,0);m.position.set(x,y,0);m.castShadow=false;m.receiveShadow=false;scene.add(m);return m};   // no cast: was ghosting onto the curtain
+L(fit(text3D(fJ,HEADER[0],{size:.2,depth:.02,mats:Wm,bevel:0}),6.6),-1.2,2.65);
+L(text3D(fJ,HEADER[1],{size:.2,depth:.02,mats:goldMat(),bevel:0}),-1.2,2.25);
+/* ---------- title rows: per-letter, reference palette (orange-gold face, red-copper sides) ---------- */
+// part-metal + a little emissive so the face reads bright orange-gold (pure metal went brown against the navy env)
+const FACE=new THREE.MeshStandardMaterial({color:'#FF9A2A',metalness:.55,roughness:.3,emissive:'#7a2a00',emissiveIntensity:.3}),
+      SIDE=new THREE.MeshStandardMaterial({color:'#B4231A',metalness:.4,roughness:.4,emissive:'#3a0500',emissiveIntensity:.4});
+const ROWS=[
+  {str:'JUARA',size:1.5,depth:.4,bevel:.025,y:.45, t0:.15,st:.16},
+  {str:W8.cls, size:.56,depth:.16,bevel:.012,y:-.35,t0:1.0,st:.045},
+  {str:W8.name,size:.5, depth:.1, bevel:.008,y:-1.2,t0:1.55,st:.03, white:true},
+];
+const X0=-1.25, MAXW=6.6, letters=[];
+ROWS.forEach(r=>{
+  const row=letterRow(fS,r.str,{size:r.size,depth:r.depth,bevel:r.bevel,align:'left',tracking:.06,mats:r.white?[Wm,SIDE]:[FACE,SIDE]});
+  const k=Math.min(1,MAXW/row.w); row.group.scale.setScalar(k); row.group.position.set(X0,r.y,0); scene.add(row.group);
+  row.letters.forEach((pv,i)=>{pv.userData.x0=pv.position.x; pv.userData.tin=r.t0+i*r.st; pv.userData.k=k; letters.push(pv)});
+});
+[...W8.cls+W8.name].forEach(ch=>{if(ch!==' '&&!fS.data.glyphs[ch])console.error('missing glyph',ch)});
+// fly-out order: last letter first, one stream across all rows
+letters.forEach((pv,i)=>pv.userData.tout=6.35+(letters.length-1-i)*(1.0/letters.length));
+// letter path: rest → behind/beside the camera (z +17 in world, offset right/up so it never fills the lens)
+const OFF=new THREE.Vector3(3.2,2.2,17);
+function place(pv,t){
+  const u=pv.userData, k=u.k, pin=P(t,u.tin,u.tin+.62), pout=P(t,u.tout,u.tout+.55);
+  const vis=t>=u.tin && pout<1; pv.visible=vis; if(!vis) return;
+  // in: fast approach that slightly overshoots (backOut) → letter "lands" in place
+  const a=1-clamp(backOut(pin),0,1.08), b=expoIn(pout), s=a+b;          // s: 1 = at the camera, 0 = at rest
+  pv.position.set(u.x0+OFF.x*s/k,OFF.y*s/k,OFF.z*s/k);
+  pv.rotation.set(.55*s,-1.1*s+(a<0? a*.6:0),.35*s);
+}
+/* ---------- glint: point light + visible streak across the type (reference lens streak) ---------- */
+const glint=new THREE.PointLight('#fff1cf',0,6,1.4);scene.add(glint);
+const sc=document.createElement('canvas');sc.width=512;sc.height=64;{const g=sc.getContext('2d');const gr=g.createRadialGradient(256,32,0,256,32,256);
+  gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.12,'rgba(255,230,170,.6)');gr.addColorStop(1,'rgba(255,200,120,0)');g.setTransform(1,0,0,.125,0,28);g.fillStyle=gr;g.fillRect(0,0,512,512)}
+const streak=new THREE.Mesh(new THREE.PlaneGeometry(4.5,.5),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sc),color:'#ffd27a',transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}));
+scene.add(streak);
+const SWEEPS=[[2.75,3.75,-.05],[4.6,5.6,-.75]];   // [start, end, y]
+const sp=sparks(scene,110,5,[18,10,6]);
 stage(renderer,scene,cam,t=>{
-  // full turn per loop, eased so the struck face lingers toward camera (ease(0)=0, ease(1)=1 → seamless)
   const u=t/LOOP, e=u-Math.sin(u*TAU)/TAU;
   medal.rotation.y=-.35+e*TAU; holder.rotation.z=Math.sin(u*TAU)*.04; holder.position.y=-.1+Math.sin(u*TAU*2)*.08;
-  const g=(t%4)/4; glint.position.set(-1.6+g*8.4,.6,1.6); glint.intensity=Math.sin(g*Math.PI)*22;
+  letters.forEach(pv=>place(pv,t));
+  glint.intensity=0; streak.visible=false;
+  SWEEPS.forEach(([a,b,y])=>{const g=P(t,a,b); if(g<=0||g>=1) return; const w=Math.sin(g*Math.PI);
+    glint.position.set(-1.6+g*8.4,y+.6,1.8); glint.intensity=w*28;
+    streak.visible=true; streak.position.set(-1.4+g*7.6,y,.6); streak.scale.set(.6+w*.8,1,1); streak.material.opacity=w*.9});
   sp(t,LOOP); stageSet(t,LOOP);
 },LOOP);
 </script></body></html>
