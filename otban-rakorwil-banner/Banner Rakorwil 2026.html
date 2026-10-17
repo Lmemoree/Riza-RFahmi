@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banner Rakorwil 2026</title>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<!--
+  Rakorwil 2026 backdrop — direction C "Contrail", merged theme (client choice, see direction-approved.md).
+  One path tells the whole theme left → right:
+    four mode lanes (laut, darat, kereta, udara) braid together at the Makassar hub  = Sinergi Transportasi Antarmoda
+    the single flight path climbs out as a contrail whose dots thin and turn green   = Penurunan Emisi Gas Rumah Kaca
+    the aircraft at the head                                                         = di Kawasan Bandar Udara
+  Type mirrors that: clause 1 white, clause 2 green (same green as the contrail).
+  1920×1080, ground #1F3375, logos top-left in order Kemenhub · DGCA · ICAO Council.
+-->
+<style>
+  :root{--navy:#1F3375;--ink:#F4F6FB;--mute:#A9B8E4;--acc:#7BE0A1}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:1920px;height:1080px;flex:none;overflow:hidden;color:var(--ink);font-family:"Plus Jakarta Sans",sans-serif;
+    background:linear-gradient(160deg,#24398A 0%,var(--navy) 45%,#182A66 100%)}
+  svg.full{position:absolute;inset:0}
+  .logos{position:absolute;left:110px;top:64px;display:flex;align-items:center;gap:44px}
+  .logos img{display:block}
+  .ev{position:absolute;right:110px;top:78px;text-align:right;font:500 20px/1.5 "Plus Jakarta Sans";color:var(--mute)}
+  .ev b{display:block;font:800 28px "Archivo";font-stretch:112%;letter-spacing:.01em;color:var(--ink);text-transform:uppercase}
+  .kick{position:absolute;left:116px;top:236px;font:700 24px "Plus Jakarta Sans";letter-spacing:.3em;text-transform:uppercase;color:var(--ink)}
+  .kick i{font-style:normal;color:var(--acc)}
+  .theme{position:absolute;left:108px;top:286px;margin:0;font-family:Archivo;font-stretch:112%;font-weight:900;font-size:88px;line-height:1.0;letter-spacing:-.02em;text-transform:uppercase;white-space:nowrap}
+  .theme .g{color:var(--acc)}
+  .theme .dan{font:600 40px "Plus Jakarta Sans";font-stretch:100%;letter-spacing:0;text-transform:none;color:var(--mute);margin-left:22px;vertical-align:.32em}
+  .theme .tail{display:block;margin-top:14px;font:600 44px "Plus Jakarta Sans";font-stretch:100%;letter-spacing:0;text-transform:none;color:var(--ink)}
+</style></head><body>
+<div id="stage">
+  <svg class="full" id="art" viewBox="0 0 1920 1080"></svg>
+  <div class="logos">
+    <img src="assets/logos/kemenhub.png" style="height:104px">
+    <img src="assets/logos/dgca.png" style="height:64px">
+    <img src="assets/logos/icao_council_dark.png" style="height:72px">
+  </div>
+  <div class="ev"><b>Makassar, 20 Oktober 2026</b>Kantor Otoritas Bandar Udara Wilayah V Makassar</div>
+  <div class="kick">Rapat Koordinasi Wilayah <i>2026</i></div>
+  <h1 class="theme">Sinergi Transportasi<br>Antarmoda<span class="dan">dan</span><br><span class="g">Penurunan Emisi<br>Gas Rumah Kaca</span><span class="tail">di Kawasan Bandar Udara</span></h1>
+</div>
+<script src="assets/data.js"></script>
+<script src="assets/banner.js"></script>
+<script>
+const svg=document.getElementById('art');
+// ghost Indonesia map, oversized and cropped
+drawMap(el('g',{},svg),{x:-260,y:150,s:1.55,fill:'#FFFFFF'}); svg.lastChild.querySelector('path').setAttribute('fill-opacity','.045');
+// one guide path: lanes along the floor of the frame, climb-out on the right (clear of the type block, which ends ~x1330)
+const guide=el('path',{d:'M130 935 C 520 948 900 940 1240 862 S 1640 672 1730 540',fill:'none'},svg);
+const L=guide.getTotalLength(), at=u=>guide.getPointAtLength(L*u);
+const nrm=u=>{const a=at(Math.max(0,u-.002)),b=at(Math.min(1,u+.002));const dx=b.x-a.x,dy=b.y-a.y,m=Math.hypot(dx,dy);return [-dy/m,dx/m]};
+const smooth=x=>x<=0?0:x>=1?1:x*x*(3-2*x);
+const HUB=.30, HEAD=.965;
+// 1 · Sinergi antarmoda: four mode lanes converge into the hub
+const lanes=[['ferry','#4FB3A6',-60],['bus','#F2C14E',-20],['train','#E8794A',20],['airplane','#8FD3FF',60]];
+lanes.forEach(([ic,col,off])=>{
+  let d='';for(let i=0;i<=120;i++){const u=i/120*HUB,p=at(u),n=nrm(u),o=off*(1-smooth(u/HUB));d+=(i?'L':'M')+(p.x+n[0]*o).toFixed(1)+' '+(p.y+n[1]*o).toFixed(1);}
+  el('path',{d,fill:'none',stroke:col,'stroke-width':11,'stroke-linecap':'round'},svg);
+  const p=at(0),n=nrm(0); el('circle',{cx:p.x+n[0]*off,cy:p.y+n[1]*off,r:23,fill:'#1F3375',stroke:col,'stroke-width':4},svg);
+  icon(svg,ic,p.x+n[0]*off,p.y+n[1]*off,25,col);
+});
+// 2 · Penurunan emisi: from the hub the path leaves as a contrail — dots shrink and turn from grey-blue to green toward the aircraft
+const N=120;
+for(let i=0;i<N;i++){const k=i/(N-1), u=HUB+.012+(HEAD-.03-HUB-.012)*k, p=at(u);
+  el('circle',{cx:p.x,cy:p.y,r:7.5-5.3*k,fill:`rgb(${Math.round(200-77*k)},${Math.round(208+16*k)},${Math.round(240-79*k)})`,'fill-opacity':.55+.45*k},svg);}
+// hub
+const h=at(HUB); el('circle',{cx:h.x,cy:h.y,r:19,fill:'#F4F6FB'},svg); el('circle',{cx:h.x,cy:h.y,r:34,fill:'none',stroke:'#F4F6FB','stroke-width':2,'stroke-opacity':.6},svg);
+const hl=el('text',{x:h.x,y:h.y-52,fill:'#F4F6FB','font-family':'JetBrains Mono','font-size':19,'letter-spacing':'3','text-anchor':'middle'},svg); hl.textContent='MAKASSAR';
+const em=at(.8), en=nrm(.8); const et=el('text',{x:em.x-en[0]*58-40,y:em.y-en[1]*58,fill:'#7BE0A1','font-family':'JetBrains Mono','font-size':19,'letter-spacing':'3'},svg); et.textContent='EMISI ↓';
+// 3 · di kawasan bandar udara: the aircraft at the head of the path
+const end=at(HEAD), pre=at(HEAD-.01); icon(svg,'airplane',end.x,end.y,170,'#FFFFFF',Math.atan2(end.y-pre.y,end.x-pre.x)*180/Math.PI+90);
+fit(); window.__ready=true;
+</script></body></html>
