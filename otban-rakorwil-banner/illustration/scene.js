@@ -7,6 +7,8 @@ export function buildScene(THREE, W, H) {
   const TAU = Math.PI * 2;
   const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   r.setPixelRatio(1); r.setSize(W, H, false); r.setClearColor(0x000000, 0);
+  // clip everything at the island's x-edges: trains, ships and traffic slide in/out of the map edge instead of popping
+  r.clippingPlanes = [new THREE.Plane(new THREE.Vector3(1, 0, 0), 20.12), new THREE.Plane(new THREE.Vector3(-1, 0, 0), 20.12)];
   r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap; r.outputColorSpace = THREE.SRGBColorSpace;
   const scene = new THREE.Scene();
   const VS = 24.5, cam = new THREE.OrthographicCamera(-VS * W / H, VS * W / H, VS, -VS, -200, 400);
@@ -74,7 +76,9 @@ export function buildScene(THREE, W, H) {
       const st = prism([[0, .35], [5.02, .35], [5.02, .6], [0, .6]], 1.24, C.red, g); st.position.x = -2.5; const wn = prism([[.3, .85], [4.2, .85], [3.95, 1.15], [.3, 1.15]], 1.24, C.glassD, g); wn.position.x = -2.5 }
     else { box(5, 1.45, 1.2, C.white, 0, 0, 0, g); box(5.02, .25, 1.24, C.red, 0, .35, 0, g, false); box(4.4, .3, 1.24, C.glassD, 0, .85, 0, g, false) }
     return g }
-  car(3.3, true); car(-1.9, false); car(-7.1, true, -1);
+  // push-pull airport rail link (cabs at both ends): arrives from the west edge, dwells at the terminal station, departs west
+  const TR = new THREE.Group(); scene.add(TR);
+  [car(3.3, true), car(-1.9, false), car(-7.1, true, -1)].forEach(c => TR.attach(c));
   /* ---------- road traffic (moves in the loop) ---------- */
   function bus(c = C.red) { const g = G(); box(3.4, 1.25, 1.1, C.white, 0, .15, 0, g); box(3.42, .3, 1.12, c, 0, .15, 0, g, false); box(3.0, .38, 1.14, C.glassD, 0, .75, 0, g, false);
     [-1.1, 1.1].forEach(dx => [-.56, .56].forEach(dz => { const w = cyl(.2, .2, .12, '#1b2240', dx, 0, dz, g, 12); w.rotation.x = Math.PI / 2; w.position.y = .2 })); return g }
@@ -83,7 +87,7 @@ export function buildScene(THREE, W, H) {
     [bus(), 9.6, 1, 1, .0], [bus(C.teal), 10.8, -1, 1, .35], [auto(C.red), 9.6, 1, 2, .55], [auto(C.yellow), 9.6, 1, 2, .2], [auto(C.white), 10.8, -1, 2, .75], [bus(C.green), 10.8, -1, 1, .82]];
   const fb = bus(); fb.position.set(-4, 0, 4.3); fb.rotation.y = Math.PI / 2;     // parked at the terminal kerb
   /* ---------- port: ship (along x), containers, crane ---------- */
-  const S = G(); S.scale.setScalar(.75);
+  const S = G(); S.scale.setScalar(.75); const SH = new THREE.Group(); scene.add(SH); SH.add(S); S.rotation.y = Math.PI;   // bow toward the pier
   prism([[-6, 0], [5.2, 0], [6.6, 1.5], [-6, 1.5]], 3, C.navy, S); prism([[-6, 0], [5.2, 0], [5.5, .4], [-6, .4]], 3.04, C.red, S);
   box(2.4, 2.6, 2.6, C.white, -4.4, 1.5, 0, S); box(2.6, .25, 2.8, C.grey, -4.4, 4.1, 0, S); box(2.2, .5, 2.64, C.glassD, -4.4, 3.3, 0, S, false); cyl(.35, .35, 1.2, C.red, -5, 4.35, 0, S, 12);
   const CC = [C.red, C.teal, C.yellow, C.orange, C.glass, C.green];
@@ -128,9 +132,14 @@ export function buildScene(THREE, W, H) {
     trail.forEach((m, i) => { const k = ((i + u * NC) % NC) / NC;                           // one full traversal per loop
       const s = (.34 - .22 * k) * sm(0, .06, k) * (1 - sm(.95, 1, k)); m.scale.setScalar(Math.max(1e-4, s));
       m.position.set(-16, .45 + 6.5 * k * k, 4 - 13.2 * k); m.material.color.copy(g0).lerp(g1, k) });
-    traffic.forEach(([o, z, dir, laps, ph]) => { let x = ((ph + u * laps) % 1) * 41 - 20.5; if (dir < 0) x = -x;
-      o.position.set(x, 0, z); o.rotation.y = dir < 0 ? Math.PI : 0; o.scale.setScalar(Math.max(1e-4, Math.min(1, (20.2 - Math.abs(x)) / 1.6))) });
-    S.position.set(14.8, -.55 + .07 * Math.sin(u * TAU * 2), -2.4); S.rotation.x = .012 * Math.sin(u * TAU * 3);
+    traffic.forEach(([o, z, dir, laps, ph]) => { let x = ((ph + u * laps) % 1) * 45 - 22.5; if (dir < 0) x = -x;   // clipped at the map edge
+      o.position.set(x, 0, z); o.rotation.y = dir < 0 ? Math.PI : 0 });
+    // train: dwell 10→2 s (wraps), depart west 2–6 s (accelerating), off-map 6–7 s, arrive from west 7–10 s (braking)
+    const tr = t < 2 ? 0 : t < 6 ? -30 * Math.pow((t - 2) / 4, 2) : t < 7 ? -30 : t < 10 ? -30 * Math.pow(1 - (t - 7) / 3, 2) : 0;
+    TR.position.x = tr;
+    // ship: berthed 10.5→2.5 s, backs out east 2.5–6 s, off-map 6–6.5 s, arrives bow-first 6.5–10.5 s
+    const sx = t < 2.5 ? 0 : t < 6 ? 12 * Math.pow((t - 2.5) / 3.5, 2) : t < 6.5 ? 12 : t < 10.5 ? 12 * Math.pow(1 - (t - 6.5) / 4, 2) : 0;
+    SH.position.set(14.8 + sx, -.55 + .07 * Math.sin(u * TAU * 2), -2.4); SH.rotation.x = .012 * Math.sin(u * TAU * 3);
     energy.forEach((m, i) => { const w = .5 + .5 * Math.sin((u * 6 - i / 14) * TAU); m.scale.setScalar(.8 + .9 * Math.pow(w, 6)) });
     r.render(scene, cam);
   }
