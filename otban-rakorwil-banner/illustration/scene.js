@@ -87,12 +87,20 @@ export function buildScene(THREE, W, H) {
     [bus(), 9.6, 1, 1, .0], [bus(C.teal), 10.8, -1, 1, .35], [auto(C.red), 9.6, 1, 2, .55], [auto(C.yellow), 9.6, 1, 2, .2], [auto(C.white), 10.8, -1, 2, .75], [bus(C.green), 10.8, -1, 1, .82]];
   const fb = bus(); fb.position.set(-4, 0, 4.3); fb.rotation.y = Math.PI / 2;     // parked at the terminal kerb
   /* ---------- port: ship (along x), containers, crane ---------- */
-  const S = G(); S.scale.setScalar(.75); const SH = new THREE.Group(); scene.add(SH); SH.add(S); S.rotation.y = Math.PI;   // bow toward the pier
+  const S = G(); S.scale.setScalar(.62); const SH = new THREE.Group(); scene.add(SH); SH.add(S); S.rotation.y = Math.PI;   // bow toward the pier
   prism([[-6, 0], [5.2, 0], [6.6, 1.5], [-6, 1.5]], 3, C.navy, S); prism([[-6, 0], [5.2, 0], [5.5, .4], [-6, .4]], 3.04, C.red, S);
   box(2.4, 2.6, 2.6, C.white, -4.4, 1.5, 0, S); box(2.6, .25, 2.8, C.grey, -4.4, 4.1, 0, S); box(2.2, .5, 2.64, C.glassD, -4.4, 3.3, 0, S, false); cyl(.35, .35, 1.2, C.red, -5, 4.35, 0, S, 12);
   const CC = [C.red, C.teal, C.yellow, C.orange, C.glass, C.green];
   for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) for (let k = 0; k < (i % 2 ? 2 : 1); k++) box(1.9, .8, 1.25, CC[(i * 2 + j + k) % 6], -1.6 + i * 1.95, 1.5 + k * .8, -.66 + j * 1.32, S);
   for (let i = 0; i < 2; i++) for (let k = 0; k < 2; k++) box(1.25, .8, 1.9, CC[(i + k + 2) % 6], 8.2, k * .8, -6 + i * 2.1);
+  // tugboat (bow +x) on a towline from the ship's stern: pulls it out stern-first, holds back as it comes in bow-first
+  const TUG = new THREE.Group(); scene.add(TUG);
+  prism([[-1, 0], [.65, 0], [1.05, .5], [1.05, .6], [-1, .6]], .95, C.orange, TUG); prism([[-1, 0], [.65, 0], [.75, .14], [-1, .14]], .99, C.navy, TUG);
+  box(1.95, .12, 1.0, '#1b2240', 0, .48, 0, TUG, false);                                  // rubber fender line
+  box(.75, .5, .64, C.white, .15, .6, 0, TUG); box(.6, .14, .66, C.glassD, .2, .86, 0, TUG, false); box(.8, .08, .7, C.navy, .15, 1.1, 0, TUG);
+  cyl(.12, .12, .45, C.yellow, -.4, .6, 0, TUG, 10); box(.12, .12, .5, C.navy, -.85, .6, 0, TUG, false);   // funnel + towing bitt
+  const rope = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, 1, 6), mat('#E9EEF8')); scene.add(rope);
+  const ropeA = new THREE.Vector3(), ropeB = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
   const crane = G(); crane.position.set(8.3, 0, -2.4);
   [[-.6, -.6], [.6, -.6], [-.6, .6], [.6, .6]].forEach(([x, z]) => box(.25, 5, .25, C.yellow, x, 0, z, crane)); box(6.5, .35, .5, C.yellow, 2.4, 5, 0, crane);
   /* ---------- onshore wind on the headland ---------- */
@@ -139,7 +147,14 @@ export function buildScene(THREE, W, H) {
     TR.position.x = tr;
     // ship: berthed 10.5→2.5 s, backs out east 2.5–6 s, off-map 6–6.5 s, arrives bow-first 6.5–10.5 s
     const sx = t < 2.5 ? 0 : t < 6 ? 12 * Math.pow((t - 2.5) / 3.5, 2) : t < 6.5 ? 12 : t < 10.5 ? 12 * Math.pow(1 - (t - 6.5) / 4, 2) : 0;
-    SH.position.set(14.8 + sx, -.55 + .07 * Math.sin(u * TAU * 2), -2.4); SH.rotation.x = .012 * Math.sin(u * TAU * 3);
+    // tug lead grows with ship speed (0 at rest → line goes slack-short at the berth, taut and long while towing)
+    const lead = t < 2.5 ? 0 : t < 6 ? 0.8 * (t - 2.5) / 3.5 : t < 6.5 ? 0.8 : t < 10.5 ? 0.8 * (1 - (t - 6.5) / 4) : 0;
+    const stern = 13.3 + sx + 6 * .62, by = -.55 + .07 * Math.sin(u * TAU * 2);
+    TUG.position.set(stern + .3 + 1 + lead, -.5 + .06 * Math.sin(u * TAU * 2 + 1.3), -2.0); TUG.rotation.x = .02 * Math.sin(u * TAU * 3 + .7);
+    ropeA.set(stern - .1, by + 1.1, -2.4); ropeB.set(TUG.position.x - .85, TUG.position.y + .66, -2.0);
+    rope.position.copy(ropeA).add(ropeB).multiplyScalar(.5); rope.scale.y = ropeA.distanceTo(ropeB);
+    rope.quaternion.setFromUnitVectors(up, ropeB.clone().sub(ropeA).normalize());
+    SH.position.set(13.3 + sx, -.55 + .07 * Math.sin(u * TAU * 2), -2.4); SH.rotation.x = .012 * Math.sin(u * TAU * 3);
     energy.forEach((m, i) => { const w = .5 + .5 * Math.sin((u * 6 - i / 14) * TAU); m.scale.setScalar(.8 + .9 * Math.pow(w, 6)) });
     r.render(scene, cam);
   }

@@ -53,16 +53,16 @@ drawMap(el('g',{},svg),{x:-260,y:150,s:1.55,fill:'#FFFFFF',stroke:'#FFFFFF',sw:1
 // halftone Indonesia: dots inside the map outline, bigger toward Sulawesi/Makassar; a light band sweeps across (2 passes per loop)
 {const cv=document.getElementById('halftone'), g=cv.getContext('2d'), test=el('path',{d:IDN.d},el('svg',{},document.body));
  const MX=640, MY=820,   // gradient centre over Java/Kalimantan, the open area under the lanes
-       DOTS=[], STEP=11;
+       DOTS=[], STEP=9;
  for(let y=150;y<1080;y+=STEP) for(let x=(Math.round(y/STEP)%2)*STEP/2;x<1920;x+=STEP){
    if(!test.isPointInFill(new DOMPoint((x+260)/1.55,(y-150)/1.55))) continue;
-   const d=Math.hypot(x-MX,(y-MY)*1.3)/1300, r=1.2+3.0*Math.max(0,1-d);           // halftone gradient
+   const d=Math.hypot(x-MX,(y-MY)*1.3)/1300, r=.7+1.2*Math.max(0,1-d);   // subtle: fine dots, felt more than seen           // halftone gradient
    const title=(x<1120&&y>220&&y<650)?.45:1;                                         // keep the type crisp
    DOTS.push([x,y,r,title]);}
  test.parentNode.remove();
  window.__mapDraw=u=>{g.clearRect(0,0,1920,1080); g.fillStyle='#FFFFFF';
    const sweep=((u*2+.37)%1)*2700-400;   // band sits mid-frame at t=0 (the still), off-frame at its wrap
-   for(const [x,y,r,k] of DOTS){const w=Math.exp(-(((x-sweep)/300)**2)); g.globalAlpha=(.26+.44*w)*k; g.beginPath(); g.arc(x,y,r*(1+.25*w),0,6.2832); g.fill();}
+   for(const [x,y,r,k] of DOTS){const w=Math.exp(-(((x-sweep)/300)**2)); g.globalAlpha=(.13+.16*w)*k; g.beginPath(); g.arc(x,y,r*(1+.15*w),0,6.2832); g.fill();}
    g.globalAlpha=1;};
  window.__mapDraw(0);}
 // four mode lanes from the left edge braid into one and run into the island's road/rail at its left tip (= Makassar hub)
