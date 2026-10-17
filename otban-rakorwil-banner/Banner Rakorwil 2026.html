@@ -2,11 +2,14 @@
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Banner Rakorwil 2026</title>
 <link rel="stylesheet" href="assets/fonts/fonts.css">
+<script type="importmap">{"imports":{"three":"./illustration/three.module.min.js"}}</script>
 <!--
   Rakorwil 2026 backdrop — direction C "Contrail", merged theme (direction-approved.md), v2 with the intermodal illustration.
-  Right: isometric ecosystem (assets/iso-hub.png, rendered from illustration/iso.html — our own low-poly model, client ref = flat
-  isometric airport): terminal with rooftop solar, gates, tower, runway + departing aircraft with a green contrail, rail + train,
-  road + buses, harbour + ship. Left: the theme; under it the four mode lanes (C's motif) run into the island at Makassar.
+  Right: isometric ecosystem rendered live with three.js (illustration/scene.js — our own low-poly model, client ref = flat isometric
+  airport): terminal with rooftop solar, gates, tower, runway + departing aircraft with a green contrail, rail + train, road traffic,
+  port + ship, onshore wind on a headland, solar-canopy e-bus depot, green energy line. Left: theme + the four mode lanes into Makassar.
+  Loop (12 s, whole cycles): rotors, traffic, contrail flow, energy pulses, ship/plane bob, lane flow, hub + leaf-pin pulses.
+  Serve the repo (python3 -m http.server) and open this file; ?t=3 renders one still.
   1920×1080, ground #1F3375, logos top-left Kemenhub · DGCA · ICAO Council.
 -->
 <style>
@@ -25,11 +28,11 @@
   .theme .g{color:var(--acc)}
   .theme .dan{font:600 32px "Plus Jakarta Sans";font-stretch:100%;letter-spacing:0;text-transform:none;color:var(--mute);margin-left:18px;vertical-align:.3em}
   .theme .tail{display:block;margin-top:12px;font:600 36px "Plus Jakarta Sans";font-stretch:100%;letter-spacing:0;text-transform:none;color:var(--ink)}
-  #iso{position:absolute;left:902px;top:206px;width:1006px;filter:drop-shadow(0 30px 40px rgba(8,16,48,.45))}
+  #iso{position:absolute;left:603px;top:183px;width:1562px;height:976px;filter:drop-shadow(0 30px 40px rgba(8,16,48,.45))}   /* 3D canvas: same world→screen mapping as the earlier PNG */
 </style></head><body>
 <div id="stage">
   <svg class="full" id="art" viewBox="0 0 1920 1080"></svg>
-  <img id="iso" src="assets/iso-hub.png" alt="">
+  <canvas id="iso"></canvas>
   <svg class="full" id="front" viewBox="0 0 1920 1080"></svg>
   <div class="logos">
     <img src="assets/logos/kemenhub.png" style="height:104px">
@@ -42,36 +45,56 @@
 </div>
 <script src="assets/data.js"></script>
 <script src="assets/banner.js"></script>
-<script src="assets/iso-anchors.js"></script>
 <script>
 const svg=document.getElementById('art');
 // ghost Indonesia map, oversized and cropped
-drawMap(el('g',{},svg),{x:-260,y:150,s:1.55,fill:'#FFFFFF'}); svg.lastChild.querySelector('path').setAttribute('fill-opacity','.045');
+drawMap(el('g',{},svg),{x:-260,y:150,s:1.55,fill:'#FFFFFF',stroke:'#FFFFFF',sw:1.4}); {const mp=svg.lastChild.querySelector('path'); mp.setAttribute('fill-opacity','.11'); mp.setAttribute('stroke-opacity','.22')}
 // four mode lanes from the left edge braid into one and run into the island's road/rail at its left tip (= Makassar hub)
 const HUB=[912,630];
 const guide=el('path',{d:`M120 930 C 420 940 700 860 ${HUB[0]} ${HUB[1]}`,fill:'none'},svg);
 const L=guide.getTotalLength(), at=u=>guide.getPointAtLength(L*u);
 const nrm=u=>{const a=at(Math.max(0,u-.002)),b=at(Math.min(1,u+.002));const dx=b.x-a.x,dy=b.y-a.y,m=Math.hypot(dx,dy);return [-dy/m,dx/m]};
+const FLOW=[];
 const smooth=x=>x<=0?0:x>=1?1:x*x*(3-2*x);
 [['ferry','#4FB3A6',-54],['bus','#F2C14E',-18],['train','#E8794A',18],['airplane','#8FD3FF',54]].forEach(([ic,col,off])=>{
   let d='';for(let i=0;i<=120;i++){const u=i/120,p=at(u),n=nrm(u),o=off*(1-smooth(u/.85));d+=(i?'L':'M')+(p.x+n[0]*o).toFixed(1)+' '+(p.y+n[1]*o).toFixed(1);}
   el('path',{d,fill:'none',stroke:col,'stroke-width':10,'stroke-linecap':'round'},svg);
+  FLOW.push(el('path',{d,fill:'none',stroke:'#FFFFFF','stroke-opacity':.55,'stroke-width':4,'stroke-linecap':'round','stroke-dasharray':'10 50'},svg));
   const p=at(0),n=nrm(0); el('circle',{cx:p.x+n[0]*off,cy:p.y+n[1]*off,r:22,fill:'#1F3375',stroke:col,'stroke-width':4},svg);
   icon(svg,ic,p.x+n[0]*off,p.y+n[1]*off,24,col);
 });
 // hub marker sits on top of the island image
 const fr=document.getElementById('front');
-el('circle',{cx:HUB[0],cy:HUB[1],r:16,fill:'#F4F6FB'},fr); el('circle',{cx:HUB[0],cy:HUB[1],r:30,fill:'none',stroke:'#F4F6FB','stroke-width':2,'stroke-opacity':.7},fr);
+el('circle',{cx:HUB[0],cy:HUB[1],r:16,fill:'#F4F6FB'},fr); const hubRing=el('circle',{cx:HUB[0],cy:HUB[1],r:30,fill:'none',stroke:'#F4F6FB','stroke-width':2,'stroke-opacity':.7},fr);
 const hl=el('text',{x:HUB[0]-46,y:HUB[1]-40,fill:'#F4F6FB','font-family':'JetBrains Mono','font-size':19,'letter-spacing':'3','text-anchor':'middle'},fr); hl.textContent='MAKASSAR';
-// penurunan emisi markers: word-free leaf pins above the clean-energy elements (labels removed at client request)
-const IX=902, IY=206, IW=1006, IH=IW*2408/3092, A=k=>[IX+ISO_ANCHORS[k][0]*IW, IY+ISO_ANCHORS[k][1]*IH];
-function pin(k,dy=74){const [ax,ay]=A(k), cy=ay-dy;
+window.__overlay={FLOW,hubRing,fr};
+</script>
+<script type="module">
+// 3D ecosystem rendered live into #iso; ?t= renders one still, __seek(t) drives frame capture. LOOP = 12 s, all motion in whole cycles.
+import * as THREE from 'three';
+import {buildScene} from './illustration/scene.js';
+const LOOP=12, qs=new URLSearchParams(location.search), q=+(qs.get('q')||1);
+const cv=document.getElementById('iso'), dpr=Math.max(1,devicePixelRatio), W=Math.round(2400*dpr*q), H=Math.round(1500*dpr*q);
+const S=buildScene(THREE,W,H); cv.replaceWith(S.renderer.domElement); S.renderer.domElement.id='iso';
+const {FLOW,hubRing,fr}=window.__overlay;
+// word-free leaf pins above the clean-energy elements, positioned from the live projection
+const CX=603, CY=183, CW=1562, CH=976, A=k=>{const [fx,fy]=S.anchors()[k];return [CX+fx*CW, CY+fy*CH]};
+const halos=[];
+function pin(k,dy){const [ax,ay]=A(k), cy=ay-dy;
   el('path',{d:`M${ax} ${ay} L${ax} ${cy+22}`,stroke:'#7BE0A1','stroke-width':2.5,'stroke-dasharray':'2 5','stroke-linecap':'round',fill:'none'},fr);
   el('circle',{cx:ax,cy:ay,r:5,fill:'#7BE0A1'},fr);
-  el('circle',{cx:ax,cy:cy,r:30,fill:'#7BE0A1','fill-opacity':.25},fr);
+  halos.push(el('circle',{cx:ax,cy:cy,r:30,fill:'#7BE0A1','fill-opacity':.25},fr));
   el('circle',{cx:ax,cy:cy,r:22,fill:'#7BE0A1',stroke:'#F4F6FB','stroke-width':3},fr);
   icon(fr,'leaf',ax,cy,26,'#0F1A44');}
-pin('roof',96); pin('wind',90); pin('depot',92);
-const img=document.getElementById('iso');
-(img.complete?Promise.resolve():new Promise(r=>img.onload=r)).then(()=>{fit();window.__ready=true});
+pin('roof',96); pin('wind',70); pin('depot',92);
+function render(t){const u=t/LOOP, TAU=Math.PI*2;
+  S.update(t,LOOP);
+  FLOW.forEach(p=>p.setAttribute('stroke-dashoffset',(-u*60*8).toFixed(2)));                 // 8 dash periods per loop
+  const h=(u*4)%1; hubRing.setAttribute('r',30+26*h); hubRing.setAttribute('stroke-opacity',(.75*(1-h)).toFixed(3));   // 4 pulses per loop
+  halos.forEach((c,i)=>{const w=.5+.5*Math.sin((u*3+i/3)*TAU); c.setAttribute('r',26+10*w); c.setAttribute('fill-opacity',(.12+.25*w).toFixed(3))});
+}
+window.__duration=LOOP; window.__seek=t=>render(t);
+await document.fonts.ready; fit();
+const still=qs.has('t')?+qs.get('t'):null; render(still??0); window.__ready=true;
+if(still==null){const t0=performance.now();const tick=n=>{if(window.__recording)return;render(((n-t0)/1000)%LOOP);requestAnimationFrame(tick)};requestAnimationFrame(tick)}
 </script></body></html>
