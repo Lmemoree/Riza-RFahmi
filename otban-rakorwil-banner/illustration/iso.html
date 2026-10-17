@@ -129,6 +129,12 @@ function ebus(x,z){const g=G();g.position.set(x,0,z);box(3.4,1.25,1.1,C.white,0,
   [-1.1,1.1].forEach(dx=>[-.56,.56].forEach(dz=>{const w=cyl(.2,.2,.12,'#1b2240',dx,0,dz,g,12);w.rotation.x=Math.PI/2;w.position.y=.2}));return g}
 ebus(12.4,5.7);ebus(16.6,7.5);
 [[10.6,5.7],[14.8,7.5]].forEach(([x,z])=>{box(.35,1.1,.35,C.white,x,0,z);box(.37,.25,.37,C.green,x,1.1,z)});
+// green energy line (dotted): wind → along the pier → terminal, with a branch to the e-bus depot. Clean power feeding the airport, shown without words.
+{const gm=new THREE.MeshBasicMaterial({color:'#7BE0A1'}), dot=new THREE.SphereGeometry(.15,10,8);
+ const run=(pts)=>{for(let i=0;i<pts.length-1;i++){const [x1,y1,z1]=pts[i],[x2,y2,z2]=pts[i+1],L=Math.hypot(x2-x1,z2-z1),n=Math.max(1,Math.round(L/.5));
+   for(let k=0;k<n;k++){const t=k/n,m=new THREE.Mesh(dot,gm);m.position.set(x1+(x2-x1)*t,y1+(y2-y1)*t,z1+(z2-z1)*t);scene.add(m)}}};
+ run([[18.2,-.3,-12.6],[18.4,-.3,-6.8],[18.6,-.3,-1.2],[9.4,-.3,-1.2],[8.2,.12,-1.2],[4.3,.12,-1.2]]);
+ run([[8.2,.12,-1.2],[8.2,.12,3.2],[10.2,.12,4.6]]);}
 // screen anchors for the banner's callouts (pixel coords in this render)
 const proj=v=>{const p=new THREE.Vector3(...v).project(cam);return [Math.round((p.x+1)/2*W),Math.round((1-p.y)/2*H)]};
 r.render(scene,cam);cam.updateMatrixWorld();
