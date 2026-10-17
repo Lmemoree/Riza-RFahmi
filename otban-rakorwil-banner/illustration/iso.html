@@ -47,9 +47,9 @@ flat(2.2,5,C.apron,-12.8,-8,0);                                   // taxiway to 
 flat(40,2.6,C.asphalt,0,10.2,0);                                  // road along x
 for(let x=-19;x<=19;x+=2.2) flat(1.1,.14,C.white,x,10.2,.05);
 flat(2.4,7.5,C.asphalt,-4,5.4,0);                                 // feeder road to terminal
-flat(40,1.4,'#3B5498',0,6.6,0);                                   // rail ballast
-[-.32,.32].forEach(dz=>flat(40,.12,C.rail,0,6.6+dz,.06));
-for(let x=-19.6;x<=19.6;x+=.8) flat(.14,1.1,'#6E7FAE',x,6.6,.03);
+flat(29.6,1.4,'#3B5498',-5.2,6.6,0);                              // rail ballast (line ends at the port: x 9.6)
+[-.32,.32].forEach(dz=>flat(29.6,.12,C.rail,-5.2,6.6+dz,.06));
+for(let x=-19.6;x<=9.2;x+=.8) flat(.14,1.1,'#6E7FAE',x,6.6,.03);
 flat(9,1.2,C.grey,-3,5.1,.0).scale.y=6;                           // station platform (raised)
 flat(40,2.2,C.green,0,12.9,0);                                    // grass verge at the front edge
 flat(3,26,C.green,-12.9,-1,0).scale.x=.6;                         // grass between runway and apron
@@ -111,5 +111,27 @@ for(let x=-19;x<=19;x+=2.6) tree(x,12.9+(x%2?.4:-.3),.9+((x*7)%3)*.1);
 /* ---------- contrail: from the runway up to the departing aircraft; dots shrink and turn green (emisi ↓) ---------- */
 {const g0=new THREE.Color('#C9D3EA'),g1=new THREE.Color('#7BE0A1'),N=46;
  for(let i=0;i<N;i++){const t=i/(N-1),z=4-(4+9.2)*t,y=.45+6.5*t*t;const m=new THREE.Mesh(new THREE.SphereGeometry(.34-.22*t,12,8),new THREE.MeshBasicMaterial({color:g0.clone().lerp(g1,t)}));m.position.set(-16,y,z);scene.add(m)}}
-r.render(scene,cam);window.__ready=true;
+/* ---------- penurunan emisi: offshore wind, solar-canopy EV bus depot, (rooftop solar + green contrail above) ---------- */
+box(.5,.7,1.6,C.grey,9.9,0,6.6);                                   // rail buffer stop
+function turbine(x,z,h,yaw){const g=G();g.position.set(x,0,z);
+  cyl(.9,1.1,.9,C.yellow,0,-.9,0,g,16);cyl(.18,.34,h,C.white,0,0,0,g,16);
+  const head=new THREE.Group();head.position.y=h;head.rotation.y=yaw;g.add(head);
+  box(1.3,.5,.55,C.white,-.2,-.25,0,head);const hub=new THREE.Mesh(new THREE.SphereGeometry(.28,12,8),mat(C.white));hub.position.x=.55;head.add(hub);
+  for(let i=0;i<3;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(.1,h*.48,.34),mat(C.white));b.geometry.translate(0,h*.24,0);b.position.x=.62;b.rotation.x=i*2*Math.PI/3+.35;b.castShadow=true;head.add(b)}
+  return g}
+turbine(18.2,-12.6,9.5,-Math.PI/4);turbine(18.4,-6.8,8.4,-Math.PI/4);turbine(18.6,-1.2,7.4,-Math.PI/4);   // rotor faces the iso camera
+// EV bus depot under a solar canopy, on the land strip by the port
+const dep=G();dep.position.set(14.6,0,6.6);
+flat(9.6,4.2,'#3D63B5',14.6,6.6,.02);
+for(let i=0;i<3;i++) for(const dz of [-1.7,1.7]) box(.18,2.6,.18,C.grey,-3.6+i*3.6,0,dz,dep);
+for(let i=0;i<5;i++) for(let j=0;j<3;j++){const p=box(1.8,.1,1.15,C.solar,-3.7+i*1.85,2.62,-1.2+j*1.2,dep);p.rotation.x=-.12}
+function ebus(x,z){const g=G();g.position.set(x,0,z);box(3.4,1.25,1.1,C.white,0,.15,0,g);box(3.42,.3,1.12,C.green,0,.15,0,g,false);box(3.0,.38,1.14,C.glassD,0,.75,0,g,false);box(.9,.12,.6,C.green,.4,1.4,0,g,false);
+  [-1.1,1.1].forEach(dx=>[-.56,.56].forEach(dz=>{const w=cyl(.2,.2,.12,'#1b2240',dx,0,dz,g,12);w.rotation.x=Math.PI/2;w.position.y=.2}));return g}
+ebus(12.4,5.7);ebus(16.6,7.5);
+[[10.6,5.7],[14.8,7.5]].forEach(([x,z])=>{box(.35,1.1,.35,C.white,x,0,z);box(.37,.25,.37,C.green,x,1.1,z)});
+// screen anchors for the banner's callouts (pixel coords in this render)
+const proj=v=>{const p=new THREE.Vector3(...v).project(cam);return [Math.round((p.x+1)/2*W),Math.round((1-p.y)/2*H)]};
+r.render(scene,cam);cam.updateMatrixWorld();
+window.__anchors={wind:proj([18.4,9.6,-6.8]),depot:proj([14.6,2.8,6.6]),roof:proj([-4,3.8,-.2]),contrail:proj([-16,4.3,-6])};
+window.__ready=true;
 </script></body></html>

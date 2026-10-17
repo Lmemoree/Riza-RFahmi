@@ -25,7 +25,7 @@
   .theme .g{color:var(--acc)}
   .theme .dan{font:600 32px "Plus Jakarta Sans";font-stretch:100%;letter-spacing:0;text-transform:none;color:var(--mute);margin-left:18px;vertical-align:.3em}
   .theme .tail{display:block;margin-top:12px;font:600 36px "Plus Jakarta Sans";font-stretch:100%;letter-spacing:0;text-transform:none;color:var(--ink)}
-  #iso{position:absolute;left:905px;top:212px;width:1010px;filter:drop-shadow(0 30px 40px rgba(8,16,48,.45))}
+  #iso{position:absolute;left:902px;top:206px;width:1006px;filter:drop-shadow(0 30px 40px rgba(8,16,48,.45))}
 </style></head><body>
 <div id="stage">
   <svg class="full" id="art" viewBox="0 0 1920 1080"></svg>
@@ -42,12 +42,13 @@
 </div>
 <script src="assets/data.js"></script>
 <script src="assets/banner.js"></script>
+<script src="assets/iso-anchors.js"></script>
 <script>
 const svg=document.getElementById('art');
 // ghost Indonesia map, oversized and cropped
 drawMap(el('g',{},svg),{x:-260,y:150,s:1.55,fill:'#FFFFFF'}); svg.lastChild.querySelector('path').setAttribute('fill-opacity','.045');
 // four mode lanes from the left edge braid into one and run into the island's road/rail at its left tip (= Makassar hub)
-const HUB=[916,655];
+const HUB=[912,630];
 const guide=el('path',{d:`M120 930 C 420 940 700 860 ${HUB[0]} ${HUB[1]}`,fill:'none'},svg);
 const L=guide.getTotalLength(), at=u=>guide.getPointAtLength(L*u);
 const nrm=u=>{const a=at(Math.max(0,u-.002)),b=at(Math.min(1,u+.002));const dx=b.x-a.x,dy=b.y-a.y,m=Math.hypot(dx,dy);return [-dy/m,dx/m]};
@@ -62,6 +63,20 @@ const smooth=x=>x<=0?0:x>=1?1:x*x*(3-2*x);
 const fr=document.getElementById('front');
 el('circle',{cx:HUB[0],cy:HUB[1],r:16,fill:'#F4F6FB'},fr); el('circle',{cx:HUB[0],cy:HUB[1],r:30,fill:'none',stroke:'#F4F6FB','stroke-width':2,'stroke-opacity':.7},fr);
 const hl=el('text',{x:HUB[0]-46,y:HUB[1]-40,fill:'#F4F6FB','font-family':'JetBrains Mono','font-size':19,'letter-spacing':'3','text-anchor':'middle'},fr); hl.textContent='MAKASSAR';
+// penurunan emisi callouts: label chips with a leader line to the element in the illustration
+const IX=902, IY=206, IW=1006, IH=IW*2408/3092, A=k=>[IX+ISO_ANCHORS[k][0]*IW, IY+ISO_ANCHORS[k][1]*IH];
+// side 'L': chip ends at lx · 'R': chip starts at lx
+function callout(k,lx,ly,text,side,col='#7BE0A1'){const [ax,ay]=A(k);
+  el('path',{d:`M${ax} ${ay} L${lx} ${ly}`,stroke:'#F4F6FB','stroke-width':1.6,'stroke-opacity':.8,fill:'none'},fr);
+  el('circle',{cx:ax,cy:ay,r:5,fill:col,stroke:'#0f1a44','stroke-width':2},fr);
+  const t=el('text',{x:0,y:0,'font-family':'Plus Jakarta Sans','font-weight':700,'font-size':19,fill:'#0f1a44'},fr); t.textContent=text;
+  const w=t.getComputedTextLength()+44, x0=lx-(side==='L'?w:0), y0=ly-17;
+  const chip=el('rect',{x:x0,y:y0,width:w,height:34,rx:17,fill:'#F4F6FB'},fr); fr.insertBefore(chip,t);
+  el('circle',{cx:x0+18,cy:ly,r:6,fill:col},fr); t.setAttribute('x',x0+32); t.setAttribute('y',ly+6.5);}
+callout('roof',1560,300,'PLTS Atap Terminal','R');
+callout('wind',1905,452,'Energi Angin','L');
+callout('depot',1640,968,'Bus Listrik · Atap Surya','R');
+callout('contrail',1100,452,'Emisi ↓','L');
 const img=document.getElementById('iso');
 (img.complete?Promise.resolve():new Promise(r=>img.onload=r)).then(()=>{fit();window.__ready=true});
 </script></body></html>
