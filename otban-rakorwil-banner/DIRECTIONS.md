@@ -13,3 +13,8 @@ Client references: their own Rakorwil banner (gold bevel side panels, map, date 
 Assets: logos from the opening project; Indonesia outline = Natural Earth 1:10m (world-atlas@2.0.2, public domain);
 icons = Material Design Icons (@mdi/svg 7.4.47, Apache-2.0). No photos: Wikimedia/Unsplash/Pexels are blocked from this
 environment, so imagery is map + vector icons (no hand-drawn SVG scenes).
+
+## Round 2 — "Skyline" layout (client ref: Kemendagri Rakortek banner), LED screen
+Client: "LED screen, rapat koordinasi wilayah kerja is the correct … create another design like the reference image … tweak into airplane, train, bus, ship".
+`Banner Rakorwil Skyline.html?d=A|B|C` — A twilight silhouettes, B gold line-art, C layered depth. Sheet: design-demos/skyline/skyline-sheet.jpg.
+Name corrected to "Rapat Koordinasi Wilayah Kerja" in both banners. Awaiting choice.

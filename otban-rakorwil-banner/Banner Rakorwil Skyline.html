@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banner Rakorwil Skyline</title>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<!--
+  Rakorwil 2026 LED backdrop — "Skyline" layout after the client's Kemendagri Rakortek reference:
+  centred logos + stacked centred title, flag ribbons in the top corners, silhouette panorama along the bottom, swoosh band.
+  The reference's village panorama is re-cast as the event theme, left → right:
+    harbour (cargo ship, gantry crane, Phinisi — Makassar's own ship), Bugis stilt houses + palms, road with bus,
+    train on the rail line, airport terminal + control tower, aircraft climbing out with a green contrail (emisi ↓).
+  ?d=A twilight silhouettes (closest to the reference) · ?d=B gold line-art · ?d=C layered paper depth
+-->
+<style>
+  :root{--navy:#1F3375;--ink:#F4F6FB;--mute:#C3CEF0;--gold:#E7C46F;--acc:#7BE0A1}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:1920px;height:1080px;flex:none;overflow:hidden;color:var(--ink);font-family:"Plus Jakarta Sans",sans-serif;
+    background:radial-gradient(ellipse 55% 45% at 50% 52%,#4A6FC6 0%,#2E4C9E 38%,var(--navy) 72%,#172863 100%)}
+  svg.full{position:absolute;inset:0}
+  .logos{position:absolute;top:56px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:52px}
+  .logos img{display:block;filter:drop-shadow(0 4px 10px rgba(8,16,48,.35))}
+  .head{position:absolute;top:226px;left:0;right:0;text-align:center;text-shadow:0 4px 18px rgba(8,16,48,.45)}
+  .t1{font:700 92px/1 "Plus Jakarta Sans";letter-spacing:-.01em;text-transform:uppercase}
+  .t2{margin-top:22px;font:700 50px/1.12 "Plus Jakarta Sans";text-transform:uppercase;color:var(--ink)}
+  .theme{display:inline-block;margin-top:30px;padding:14px 40px;font:600 30px/1.35 "Plus Jakarta Sans";color:var(--gold);
+    border-top:1.5px solid rgba(231,196,111,.6);border-bottom:1.5px solid rgba(231,196,111,.6);text-shadow:none}
+  .theme i{font-style:normal;color:var(--acc)}
+  .date{margin-top:24px;font:500 26px "Plus Jakarta Sans";color:var(--mute);letter-spacing:.02em}
+</style></head><body>
+<div id="stage">
+  <svg class="full" id="bg" viewBox="0 0 1920 1080"></svg>
+  <svg class="full" id="sky" viewBox="0 0 1920 1080"></svg>
+  <div class="logos">
+    <img src="assets/logos/kemenhub.png" style="height:112px">
+    <img src="assets/logos/dgca.png" style="height:70px">
+    <img src="assets/logos/icao_council_dark.png" style="height:78px">
+  </div>
+  <div class="head">
+    <div class="t1">Rapat Koordinasi Wilayah Kerja</div>
+    <div class="t2">Kantor Otoritas Bandar Udara<br>Wilayah V Makassar Tahun 2026</div>
+    <div class="theme">Sinergi Transportasi Antarmoda dan <i>Penurunan Emisi Gas Rumah Kaca</i><br>di Kawasan Bandar Udara</div>
+    <div class="date">Makassar, 20 Oktober 2026</div>
+  </div>
+</div>
+<script src="assets/data.js"></script>
+<script src="assets/banner.js"></script>
+<script>
+const D=(new URLSearchParams(location.search).get('d')||'A').toUpperCase();
+const STY={
+  A:{far:'#3A5BB0',mid:'#24408C',near:'#121F4F',stroke:'none',sw:0,win:'#F6D98C',ground:'#0F1A44'},
+  B:{far:'#22398A',mid:'#1C3279',near:'#172A66',stroke:'#E7C46F',sw:2.4,win:'#E7C46F',ground:'#14245A'},
+  C:{far:'#6F95E0',mid:'#3B5FBA',near:'#15245A',stroke:'none',sw:0,win:'#FFE3A3',ground:'#111D4A'},
+}[D];
+const bg=document.getElementById('bg'), sky=document.getElementById('sky');
+/* ---------- background texture: light rays, dot grid, ghost map ---------- */
+const rays=el('g',{opacity:.055},bg);
+for(let i=0;i<14;i++){const a=(-80+i*12)*Math.PI/180, x=960+Math.sin(a)*2200, y=560-Math.cos(a)*2200;
+  el('polygon',{points:`960,560 ${x-60},${y} ${x+60},${y}`,fill:'#FFFFFF'},rays);}
+const dots=el('g',{fill:'#FFFFFF','fill-opacity':.07},bg);
+for(let y=20;y<760;y+=26)for(let x=(y/26%2)*13;x<1920;x+=26) if(Math.hypot((x-960)/1.6,y-430)>420) el('circle',{cx:x,cy:y,r:2},dots);
+drawMap(el('g',{},bg),{x:160,y:200,s:1.0,fill:'#FFFFFF'}); bg.lastChild.querySelector('path').setAttribute('fill-opacity','.05');
+/* ---------- flag ribbons (merah-putih) in the top corners ---------- */
+function flag(flip){const g=el('g',{transform:flip?'translate(1920 0) scale(-1 1)':''},sky);
+  const N=60,len=430,top=x=>40+ x*.10 + 26*Math.sin(x/len*Math.PI*1.6+.4), w=x=>34-x/len*10;
+  let r='',wt='';const P=[];for(let i=0;i<=N;i++){const x=-20+i/N*len;P.push([x,top(x),w(x)])}
+  r='M'+P.map(([x,y])=>`${x} ${y}`).join(' L')+' L'+P.slice().reverse().map(([x,y,h])=>`${x} ${y+h}`).join(' L')+'Z';
+  wt='M'+P.map(([x,y,h])=>`${x} ${y+h}`).join(' L')+' L'+P.slice().reverse().map(([x,y,h])=>`${x} ${y+2*h}`).join(' L')+'Z';
+  el('path',{d:wt,fill:'#F4F6FB'},g); el('path',{d:r,fill:'#D7263D'},g);
+  el('path',{d:'M'+P.map(([x,y,h])=>`${x} ${y+2*h}`).join(' L'),fill:'none',stroke:'#0b1433','stroke-opacity':.25,'stroke-width':6},g);}
+flag(false);flag(true);
+/* ---------- silhouette panorama ---------- */
+const GY=985;                                      // ground line
+const layer=k=>el('g',{fill:STY[k],stroke:STY.stroke,'stroke-width':STY.sw,'stroke-linejoin':'round'},sky);
+// C only: two extra haze ranges (Sulawesi hills) behind everything for paper-cut depth
+if(D==='C'){[['#8FB0EC',.55,GY-250],['#7FA2E6',.75,GY-190]].forEach(([c,o,y],k)=>{let d=`M0 ${y+40}`;for(let x=0;x<=1920;x+=160)d+=` Q ${x+80} ${y-60+((x/160+k)%3)*40} ${x+160} ${y+((x/160)%2)*30}`;
+  el('path',{d:d+` L1920 ${GY} L0 ${GY} Z`,fill:c,'fill-opacity':o},sky)})}
+const far=layer('far'), mid=layer('mid'), near=layer('near');
+const P=(g,d,extra={})=>el('path',Object.assign({d},extra),g);
+const R=(g,x,y,w,h,rx=0,extra={})=>el('rect',Object.assign({x,y,width:w,height:h,rx},extra),g);
+const win=(g,x,y,w,h,rx=2)=>el('rect',{x,y,width:w,height:h,rx,fill:STY.win,stroke:'none','fill-opacity':D==='B'?.9:.85},g);
+// far layer: low hills + distant city blocks (depth)
+P(far,`M0 ${GY-70} C 220 ${GY-140} 420 ${GY-60} 640 ${GY-110} S 1060 ${GY-150} 1300 ${GY-90} S 1700 ${GY-150} 1920 ${GY-80} L1920 ${GY} L0 ${GY} Z`);
+[[560,70,90],[640,50,130],[700,80,70],[1180,60,110],[1250,90,80],[1330,55,120]].forEach(([x,w,h])=>R(far,x,GY-h-60,w,h+60));
+// palm tree
+function palm(g,x,h,s=1){const top=[x+14*s,GY-h];
+  P(g,`M${x-6*s} ${GY} Q ${x-2*s} ${GY-h*.55} ${top[0]} ${top[1]} L ${top[0]+7*s} ${top[1]+3} Q ${x+8*s} ${GY-h*.5} ${x+6*s} ${GY} Z`);
+  [[-1,-.25],[-1,.25],[1,-.3],[1,.2],[-.3,-1],[.4,-1]].forEach(([dx,dy])=>{const ex=top[0]+dx*70*s, ey=top[1]+dy*40*s+28*s;
+    P(g,`M${top[0]} ${top[1]} Q ${top[0]+dx*36*s} ${top[1]+dy*40*s-18*s} ${ex} ${ey} Q ${top[0]+dx*30*s} ${top[1]+dy*24*s} ${top[0]} ${top[1]+6*s} Z`)});}
+// Bugis stilt house (rumah panggung) with crossed gable horns
+function stilt(g,x,w,s=1){const h=58*s, legs=36*s, by=GY-legs-h;
+  for(let i=0;i<=4;i++) R(g,x+i*(w-8)/4,GY-legs,8,legs);
+  R(g,x-6,by,w+12,h); P(g,`M${x-26} ${by+4} L${x+w/2} ${by-62*s} L${x+w+26} ${by+4} Z`);
+  P(g,`M${x+w/2-18} ${by-60*s} L${x+w/2+22} ${by-92*s} L${x+w/2+26} ${by-88*s} L${x+w/2-10} ${by-56*s} Z`); P(g,`M${x+w/2+18} ${by-60*s} L${x+w/2-22} ${by-92*s} L${x+w/2-26} ${by-88*s} L${x+w/2+10} ${by-56*s} Z`);
+  win(g,x+12,by+16,18,24);win(g,x+w-30,by+16,18,24);
+  P(g,`M${x+w+6} ${GY} L${x+w+40} ${by+h} L${x+w+30} ${by+h} L${x+w-4} ${GY} Z`);}
+// cargo ship + crane + phinisi on the water
+const water=el('path',{d:`M0 ${GY-6} Q 120 ${GY-16} 240 ${GY-6} T 480 ${GY-6} L480 ${GY+40} L0 ${GY+40} Z`,fill:D==='C'?'#3B66C2':'#2A4A9E',stroke:'none'},sky);
+function ship(g,x){P(g,`M${x} ${GY-50} L${x+330} ${GY-50} L${x+300} ${GY-6} L${x+28} ${GY-6} Z`);
+  R(g,x+250,GY-128,58,78);R(g,x+256,GY-150,46,24);R(g,x+272,GY-176,12,26);win(g,x+258,GY-118,42,12);
+  for(let i=0;i<5;i++)for(let k=0;k<(i%2?3:2);k++) R(g,x+20+i*44,GY-50-(k+1)*24,40,21,2);}
+function crane(g,x){R(g,x,GY-230,14,230);R(g,x+70,GY-230,14,230);R(g,x-10,GY-240,104,16);R(g,x+40,GY-252,200,14);
+  P(g,`M${x} ${GY-140} L${x+84} ${GY-60} L${x+84} ${GY-48} L${x} ${GY-128} Z`);P(g,`M${x+150} ${GY-238} L${x+160} ${GY-238} L${x+160} ${GY-150} L${x+150} ${GY-150} Z`);}
+function phinisi(g,x,s=1){P(g,`M${x} ${GY-34*s} Q ${x+20*s} ${GY-6} ${x+60*s} ${GY-8} L${x+190*s} ${GY-8} Q ${x+230*s} ${GY-14*s} ${x+250*s} ${GY-48*s} L${x+220*s} ${GY-30*s} L${x+30*s} ${GY-30*s} Z`);
+  [[70,180],[150,160]].forEach(([mx,mh])=>{R(g,x+mx*s,GY-30*s-mh*s,5*s,mh*s);
+    P(g,`M${x+(mx+8)*s} ${GY-(30+mh-6)*s} L${x+(mx+58)*s} ${GY-(30+mh-30)*s} L${x+(mx+58)*s} ${GY-(30+mh/2)*s} L${x+(mx+8)*s} ${GY-(30+mh/2-8)*s} Z`);
+    P(g,`M${x+(mx-6)*s} ${GY-(30+mh-14)*s} L${x+(mx-50)*s} ${GY-(30+20)*s} L${x+(mx-6)*s} ${GY-(30+16)*s} Z`);});}
+ship(mid,30); crane(near,330); phinisi(near,190,.78);
+// houses + palms (city/village between harbour and transport line)
+stilt(near,560,120); palm(near,520,170); palm(mid,720,140,.8); stilt(mid,760,96,.8); palm(near,890,190,1.05);
+// road + bus, rail + train (centre, kept low so the date stays clear)
+R(near,0,GY-4,1920,14);
+function bus(g,x){R(g,x,GY-74,190,62,14);[[x+14,GY-64],[x+52,GY-64],[x+90,GY-64],[x+128,GY-64]].forEach(([a,b])=>win(g,a,b,32,22,4));win(g,x+164,GY-64,18,30,4);
+  el('circle',{cx:x+40,cy:GY-10,r:14,fill:STY.ground,stroke:STY.stroke,'stroke-width':STY.sw},g);el('circle',{cx:x+150,cy:GY-10,r:14,fill:STY.ground,stroke:STY.stroke,'stroke-width':STY.sw},g);}
+function train(g,x,n=3){for(let i=0;i<n;i++){const cx=x+i*176;
+  if(i===n-1) P(g,`M${cx} ${GY-80} L${cx+120} ${GY-80} Q ${cx+168} ${GY-76} ${cx+172} ${GY-20} L${cx} ${GY-20} Z`); else R(g,cx,GY-80,170,60,8);
+  for(let j=0;j<4;j++) win(g,cx+14+j*30,GY-68,22,18,3); }
+  R(g,x-10,GY-18,n*176+20,6);}
+bus(near,940); train(mid,1150,2);
+// airport: terminal with arched roof + control tower, palms on the right
+function terminal(g,x,w){P(g,`M${x} ${GY} L${x} ${GY-90} Q ${x+w/2} ${GY-150} ${x+w} ${GY-90} L${x+w} ${GY} Z`);for(let i=0;i<9;i++) win(g,x+24+i*(w-48)/9,GY-78,(w-48)/9-8,46,2);}
+function tower(g,x){P(g,`M${x-16} ${GY} L${x-10} ${GY-250} L${x+10} ${GY-250} L${x+16} ${GY} Z`);
+  P(g,`M${x-48} ${GY-252} L${x+48} ${GY-252} L${x+38} ${GY-300} L${x-38} ${GY-300} Z`);win(g,x-34,GY-292,68,26,2);R(g,x-44,GY-312,88,12,4);R(g,x-2,GY-346,4,34);}
+terminal(mid,1600,290); tower(near,1548); palm(near,1840,180); palm(mid,1890,150,.8);
+// aircraft climbing out, contrail fading green (emisi ↓)
+const plane=el('g',{transform:'translate(1600 700) rotate(-14) scale(1.05)'},near);
+P(plane,'M0 30 Q2 18 26 14 L230 12 Q246 -2 258 -44 L278 -44 L268 12 Q300 16 302 26 Q302 36 286 38 L26 42 Q2 42 0 30 Z',{transform:'scale(-1 1) translate(-300 0)'});
+P(plane,'M110 30 L180 30 L148 78 L126 78 Z');P(plane,'M24 18 L50 18 L36 -6 L28 -6 Z',{opacity:0});
+el('ellipse',{cx:150,cy:46,rx:24,ry:10},plane);
+for(let i=0;i<26;i++){const t=i/25, x=1640-(1-t)*330, y=742+(1-t)*(1-t)*150+(1-t)*14;
+  el('circle',{cx:x,cy:y,r:7-4.5*t,fill:`rgb(${Math.round(190-67*t)},${Math.round(204+20*t)},${Math.round(240-79*t)})`,'fill-opacity':.5+.5*t,stroke:'none'},sky);}
+/* ---------- ground + swoosh band ---------- */
+P(sky,`M0 ${GY+8} L1920 ${GY+8} L1920 1080 L0 1080 Z`,{fill:STY.ground});
+P(sky,`M0 1010 C 500 960 1300 1060 1920 980 L1920 1004 C 1300 1084 500 990 0 1036 Z`,{fill:'#D7263D'});
+P(sky,`M0 1036 C 500 990 1300 1084 1920 1004 L1920 1026 C 1300 1100 500 1016 0 1060 Z`,{fill:'#F4F6FB'});
+P(sky,`M0 1000 C 500 950 1300 1050 1920 970`,{fill:'none',stroke:'#E7C46F','stroke-width':4});
+fit(); window.__ready=true;
+</script></body></html>
