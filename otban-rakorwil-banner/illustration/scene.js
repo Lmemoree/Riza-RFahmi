@@ -7,8 +7,7 @@ export function buildScene(THREE, W, H) {
   const TAU = Math.PI * 2;
   const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
   r.setPixelRatio(1); r.setSize(W, H, false); r.setClearColor(0x000000, 0);
-  // clip everything at the island's x-edges: trains, ships and traffic slide in/out of the map edge instead of popping
-  r.clippingPlanes = [new THREE.Plane(new THREE.Vector3(1, 0, 0), 20.12), new THREE.Plane(new THREE.Vector3(-1, 0, 0), 20.12)];
+  r.localClippingEnabled = true;   // land traffic is clipped at the island's x-edges (see below); the ship + tug are not
   r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap; r.outputColorSpace = THREE.SRGBColorSpace;
   const scene = new THREE.Scene();
   const VS = 24.5, cam = new THREE.OrthographicCamera(-VS * W / H, VS * W / H, VS, -VS, -200, 400);
@@ -133,6 +132,28 @@ export function buildScene(THREE, W, H) {
   for (let i = 0; i < NC; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), new THREE.MeshBasicMaterial({ color: '#fff' })); scene.add(m); trail.push(m) }
   const sm = (a, b, x) => { const u = Math.min(1, Math.max(0, (x - a) / (b - a))); return u * u * (3 - 2 * u) };
 
+  /* ---------- clipping + fades ----------
+     Train and road traffic slide in/out of the island edge (clip planes on their materials).
+     The ship + tug are NOT clipped: the harbour mouth opens onto a strip of sea that fades into the background,
+     and they fade out with distance as they sail into it (own material copies, transparent). */
+  const PLANES = [new THREE.Plane(new THREE.Vector3(1, 0, 0), 20.12), new THREE.Plane(new THREE.Vector3(-1, 0, 0), 20.12)];
+  const shipMats = [], tugMats = [], fadeSet = new Set();
+  const own = (root, list) => root.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.transparent = true; list.push(m.material); fadeSet.add(m) } });
+  own(SH, shipMats); own(TUG, tugMats); own(rope, tugMats);
+  scene.traverse(m => { if (m.isMesh && !fadeSet.has(m)) m.material.clippingPlanes = PLANES });
+  { // open sea beyond the harbour mouth: wide plane whose alpha falls off away from the island (x) and toward its sides (z)
+    const N = 256, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), id = g.createImageData(N, N);
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const u = i / (N - 1), v = j / (N - 1);
+      const ax = Math.pow(1 - u, 1.6), az = sm(0, .22, v) * (1 - sm(.78, 1, v)), k = (j * N + i) * 4;
+      id.data[k] = id.data[k + 1] = id.data[k + 2] = 255; id.data[k + 3] = Math.round(255 * ax * az) }
+    g.putImageData(id, 0, 0);
+    const sea = new THREE.Mesh(new THREE.PlaneGeometry(16, 34), new THREE.MeshLambertMaterial({ color: C.water, map: new THREE.CanvasTexture(c), transparent: true }));
+    sea.material.map.colorSpace = THREE.SRGBColorSpace; sea.rotation.x = -Math.PI / 2; sea.position.set(28.05, -.4, -1.5); sea.renderOrder = -1; scene.add(sea); }
+  // ship + tug recede into the distance: colour sinks to the background navy, opacity only goes at the very end (no see-through ghosting)
+  const NAVY = new THREE.Color('#1F3375'), baseCol = new Map();
+  [...shipMats, ...tugMats].forEach(m => { baseCol.set(m, m.color.clone()); if (!m.emissive) m.emissive = new THREE.Color(0) });
+  const recede = (mats, k) => mats.forEach(m => { m.color.copy(baseCol.get(m)).multiplyScalar(k); m.emissive.copy(NAVY).multiplyScalar(.85 * (1 - k)); m.opacity = Math.min(1, k * 4) });
+  const fade = (a, b, x) => 1 - sm(a, b, x);
   function update(t, loop) {
     const u = t / loop;
     rotors.forEach((rt, i) => rt.rotation.x = .35 + i * .9 + u * TAU * 4);                     // 4 turns per loop
@@ -154,6 +175,9 @@ export function buildScene(THREE, W, H) {
     ropeA.set(stern - .1, by + 1.1, -2.4); ropeB.set(TUG.position.x - .85, TUG.position.y + .66, -2.0);
     rope.position.copy(ropeA).add(ropeB).multiplyScalar(.5); rope.scale.y = ropeA.distanceTo(ropeB);
     rope.quaternion.setFromUnitVectors(up, ropeB.clone().sub(ropeA).normalize());
+    const so = fade(20.4, 29.5, stern), to = fade(20.8, 29.5, TUG.position.x + 1.05);
+    recede(shipMats, so); recede(tugMats, to);
+    SH.visible = so > .002; TUG.visible = rope.visible = to > .002;
     SH.position.set(13.3 + sx, -.55 + .07 * Math.sin(u * TAU * 2), -2.4); SH.rotation.x = .012 * Math.sin(u * TAU * 3);
     energy.forEach((m, i) => { const w = .5 + .5 * Math.sin((u * 6 - i / 14) * TAU); m.scale.setScalar(.8 + .9 * Math.pow(w, 6)) });
     r.render(scene, cam);

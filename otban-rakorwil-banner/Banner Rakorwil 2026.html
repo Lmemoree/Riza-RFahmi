@@ -60,9 +60,21 @@ drawMap(el('g',{},svg),{x:-260,y:150,s:1.55,fill:'#FFFFFF',stroke:'#FFFFFF',sw:1
    const title=(x<1120&&y>220&&y<650)?.45:1;                                         // keep the type crisp
    DOTS.push([x,y,r,title]);}
  test.parentNode.remove();
- window.__mapDraw=u=>{g.clearRect(0,0,1920,1080); g.fillStyle='#FFFFFF';
+ const MAP=new Path2D(IDN.d);
+ window.__mapDraw=u=>{g.clearRect(0,0,1920,1080);
    const sweep=((u*2+.37)%1)*2700-400;   // band sits mid-frame at t=0 (the still), off-frame at its wrap
-   for(const [x,y,r,k] of DOTS){const w=Math.exp(-(((x-sweep)/300)**2)); g.globalAlpha=(.13+.16*w)*k; g.beginPath(); g.arc(x,y,r*(1+.15*w),0,6.2832); g.fill();}
+   // light sweep over the islands themselves (soft fill glow + brighter coastline) — the map is what the eye catches, not the dots
+   const band=(a)=>{const gr=g.createLinearGradient(sweep-420,0,sweep+420,0);gr.addColorStop(0,'rgba(255,255,255,0)');gr.addColorStop(.5,`rgba(255,255,255,${a})`);gr.addColorStop(1,'rgba(255,255,255,0)');return gr};
+   g.save(); g.setTransform(1.55,0,0,1.55,-260,150);
+   g.save(); g.clip(MAP); g.setTransform(1,0,0,1,0,0); g.fillStyle=band(.13); g.fillRect(0,0,1920,1080); g.restore();
+   g.lineWidth=1.6/1.55; g.setTransform(1.55,0,0,1.55,-260,150); g.strokeStyle='rgba(0,0,0,0)';
+   g.restore();
+   g.save(); g.setTransform(1.55,0,0,1.55,-260,150); g.lineWidth=2/1.55; g.strokeStyle=band(.55); 
+   // strokeStyle gradient is in the current (map) space: rebuild it there
+   {const s0=(sweep+260)/1.55, gr=g.createLinearGradient(s0-270,0,s0+270,0); gr.addColorStop(0,'rgba(255,255,255,0)'); gr.addColorStop(.5,'rgba(255,255,255,.55)'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.strokeStyle=gr;}
+   g.stroke(MAP); g.restore();
+   g.fillStyle='#FFFFFF';
+   for(const [x,y,r,k] of DOTS){const w=Math.exp(-(((x-sweep)/300)**2)); g.globalAlpha=(.13+.10*w)*k; g.beginPath(); g.arc(x,y,r*(1+.15*w),0,6.2832); g.fill();}
    g.globalAlpha=1;};
  window.__mapDraw(0);}
 // four mode lanes from the left edge braid into one and run into the island's road/rail at its left tip (= Makassar hub)
