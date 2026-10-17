@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banner C · Contrail</title>
+<link rel="stylesheet" href="../assets/fonts/fonts.css">
+<!--
+  Direction C · "Contrail" — logic: best designer. Pentagram (Michael Bierut / Paula Scher's environmental-graphics way of
+  turning one idea into one huge mark). The idea comes from the content itself: a single climb-out path that IS the message.
+  ?v=1 RAN GRK: the contrail is a trail of dots that thin out and turn green toward the aircraft → emissions going down.
+  ?v=2 Antarmoda: four mode lanes (sea, road, rail, air) braid together at the Makassar hub and leave as one flight path → synergy.
+-->
+<style>
+  :root{--navy:#1F3375;--ink:#F4F6FB;--mute:#A9B8E4;--acc:#7BE0A1}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:1920px;height:1080px;flex:none;overflow:hidden;color:var(--ink);font-family:"Plus Jakarta Sans",sans-serif;
+    background:linear-gradient(160deg,#24398A 0%,var(--navy) 45%,#182A66 100%)}
+  svg.full{position:absolute;inset:0}
+  .logos{position:absolute;left:110px;top:64px;display:flex;align-items:center;gap:44px}
+  .logos img{display:block}
+  .kick{position:absolute;left:116px;top:268px;font:600 22px "Plus Jakarta Sans";letter-spacing:.3em;text-transform:uppercase;color:var(--acc)}
+  h1{position:absolute;left:108px;top:308px;margin:0;font-family:Archivo;font-stretch:112%;font-weight:900;font-size:116px;line-height:.98;letter-spacing:-.02em;text-transform:uppercase;white-space:nowrap}
+  .sub{position:absolute;left:116px;top:560px;font:500 30px "Plus Jakarta Sans";color:var(--mute)}
+  .ev{position:absolute;right:110px;top:78px;text-align:right;font:500 20px/1.5 "Plus Jakarta Sans";color:var(--mute)}
+  .ev b{display:block;font:800 28px "Archivo";font-stretch:112%;letter-spacing:.01em;color:var(--ink);text-transform:uppercase}
+</style></head><body>
+<div id="stage">
+  <svg class="full" id="art" viewBox="0 0 1920 1080"></svg>
+  <div class="logos">
+    <img src="../assets/logos/kemenhub.png" style="height:104px">
+    <img src="../assets/logos/dgca.png" style="height:64px">
+    <img src="../assets/logos/icao_council_dark.png" style="height:72px">
+  </div>
+  <div class="kick" id="kick"></div>
+  <h1 id="title"></h1>
+  <div class="sub" id="sub"></div>
+  <div class="ev" id="ev"></div>
+</div>
+<script src="../assets/data.js"></script>
+<script src="../assets/banner.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+$('kick').textContent=EVENT.name+' 2026';
+$('title').innerHTML=COPY.title.join('<br>');
+$('sub').textContent=COPY.sub;
+$('ev').innerHTML=`<b>${EVENT.place}, 20 Oktober 2026</b>${EVENT.org[2]}`;
+const svg=$('art');
+// ghost Indonesia map, oversized and cropped — texture with meaning, not decoration
+const P=drawMap(el('g',{},svg),{x:-260,y:120,s:1.55,fill:'#FFFFFF'}); svg.lastChild.querySelector('path').setAttribute('fill-opacity','.045');
+// the climb-out path (hidden guide), sampled
+const guide=el('path',{d:'M120 960 C 700 975 1180 930 1480 800 S 1720 650 1760 620',fill:'none'},svg);
+const L=guide.getTotalLength(), at=u=>guide.getPointAtLength(L*u);
+const nrm=u=>{const a=at(Math.max(0,u-.002)),b=at(Math.min(1,u+.002));const dx=b.x-a.x,dy=b.y-a.y,m=Math.hypot(dx,dy);return [-dy/m,dx/m]};
+const HUB=.36, end=at(.965), pre=at(.955), ang=Math.atan2(end.y-pre.y,end.x-pre.x)*180/Math.PI+90;
+const smooth=x=>x<=0?0:x>=1?1:x*x*(3-2*x);
+if(V===1){
+  // dotted contrail: dots get smaller and turn from grey-blue to green toward the aircraft (emisi ↓)
+  const N=130;
+  for(let i=0;i<N;i++){const u=i/N*.93, p=at(u), k=u/.93;
+    const r=9-6.5*k, c=`rgb(${Math.round(170-47*k)},${Math.round(184+40*k)},${Math.round(228-67*k)})`;
+    el('circle',{cx:p.x,cy:p.y,r,fill:c,'fill-opacity':.35+.6*k},svg);}
+  const t=at(.74), n=nrm(.74);
+  const lab=el('text',{x:t.x+n[0]*-60,y:t.y+n[1]*-60,fill:'#7BE0A1','font-family':'JetBrains Mono','font-size':20,'letter-spacing':'3'},svg); lab.textContent='EMISI ↓';
+}else{
+  // four mode lanes converge into one at the hub, then a single flight path climbs out
+  const lanes=[['ferry','#4FB3A6','Laut',-66],['bus','#F2C14E','Darat',-22],['train','#E8794A','Kereta',22],['airplane','#8FD3FF','Udara',66]];
+  lanes.forEach(([ic,col,name,off])=>{
+    let d='';for(let i=0;i<=120;i++){const u=i/120*HUB, p=at(u), n=nrm(u), o=off*(1-smooth(u/HUB)); d+=(i?'L':'M')+(p.x+n[0]*o).toFixed(1)+' '+(p.y+n[1]*o).toFixed(1);}
+    el('path',{d,fill:'none',stroke:col,'stroke-width':12,'stroke-linecap':'round'},svg);
+    const u0=0, p=at(u0), n=nrm(u0), o=off*(1-smooth(u0/HUB));
+    el('circle',{cx:p.x+n[0]*o,cy:p.y+n[1]*o,r:24,fill:'#1F3375',stroke:col,'stroke-width':4},svg);
+    icon(svg,ic,p.x+n[0]*o,p.y+n[1]*o,26,col);
+  });
+  let d='';for(let i=0;i<=100;i++){const p=at(HUB+(.93-HUB)*i/100); d+=(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1);}
+  el('path',{d,fill:'none',stroke:'#F4F6FB','stroke-width':12,'stroke-linecap':'round'},svg);
+  const h=at(HUB); el('circle',{cx:h.x,cy:h.y,r:20,fill:'#F4F6FB'},svg); el('circle',{cx:h.x,cy:h.y,r:36,fill:'none',stroke:'#F4F6FB','stroke-width':2,'stroke-opacity':.6},svg);
+  const hl=el('text',{x:h.x-20,y:h.y+76,fill:'#F4F6FB','font-family':'JetBrains Mono','font-size':20,'letter-spacing':'3'},svg); hl.textContent='MAKASSAR';
+}
+// the aircraft at the head of the path
+icon(svg,'airplane',end.x,end.y,170,'#FFFFFF',ang);
+fit(); window.__ready=true;
+</script></body></html>

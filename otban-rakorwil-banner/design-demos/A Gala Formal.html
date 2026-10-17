@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banner A · Gala Formal</title>
+<link rel="stylesheet" href="../assets/fonts/fonts.css">
+<!--
+  Direction A · "Gala Formal" — logic: real reference. Tweaks the client's own Rakorwil banner (gold-trimmed bevel side panels,
+  centred title, Indonesia map, date plate) + Kemendagri Rakortek layout (logo row on top, centred stacked title).
+  Changes vs. their banner: logos moved to a top row (brief), map drawn from real data with flight routes out of Makassar,
+  panel content becomes the session's message (?v=1 RAN GRK, ?v=2 Antarmoda).
+-->
+<style>
+  :root{--navy:#1F3375;--deep:#142456;--gold:#D4B26A;--gold2:#B8924A;--ink:#F4F6FB;--mute:#B9C6EA}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:1920px;height:1080px;flex:none;overflow:hidden;color:var(--ink);font-family:"Plus Jakarta Sans",sans-serif;
+    background:radial-gradient(ellipse 70% 60% at 50% 42%,#2B4594 0%,var(--navy) 55%,#16275E 100%)}
+  svg.full{position:absolute;inset:0}
+  .logos{position:absolute;top:58px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:56px}
+  .logos img{display:block}
+  .logos .sep{width:1px;height:70px;background:linear-gradient(transparent,var(--gold),transparent);opacity:.7}
+  .head{position:absolute;top:236px;left:0;right:0;text-align:center}
+  .kick{font:700 22px "Plus Jakarta Sans";letter-spacing:.32em;text-transform:uppercase;color:var(--gold)}
+  .kick:before,.kick:after{content:"";display:inline-block;width:90px;height:1px;background:var(--gold);vertical-align:middle;margin:0 26px;opacity:.75}
+  h1{margin:18px 0 0;font:800 118px/0.98 "Barlow Condensed";text-transform:uppercase;letter-spacing:.005em}
+  h1 .l2{color:var(--gold);background:linear-gradient(180deg,#F1D79A,#C79D4E);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .sub{margin-top:20px;font:italic 500 28px "Plus Jakarta Sans";color:var(--mute)}
+  .org{position:absolute;left:92px;top:250px;width:270px;font:600 19px/1.35 "Barlow Condensed";letter-spacing:.02em;color:var(--ink)}
+  .org div{padding:16px 0;border-bottom:1px solid rgba(212,178,106,.45)}
+  .org div:last-child{border:none}
+  .modes{position:absolute;right:92px;top:250px;width:270px;display:flex;flex-direction:column;align-items:center;gap:30px}
+  .mode{display:flex;flex-direction:column;align-items:center;gap:8px;font:600 17px "Barlow Condensed";letter-spacing:.18em;text-transform:uppercase;color:var(--mute)}
+  .plate{position:absolute;left:50%;bottom:46px;transform:translateX(-50%);padding:14px 64px;font:700 28px "Barlow Condensed";letter-spacing:.08em;color:var(--ink);
+    clip-path:polygon(28px 0,calc(100% - 28px) 0,100% 100%,0 100%);background:linear-gradient(180deg,#1A2C68,#101D47);box-shadow:inset 0 0 0 2px var(--gold)}
+  .plate b{color:var(--gold);font-weight:700}
+</style></head><body>
+<div id="stage">
+  <svg class="full" id="bg" viewBox="0 0 1920 1080"></svg>
+  <div class="logos">
+    <img src="../assets/logos/kemenhub.png" style="height:118px">
+    <span class="sep"></span>
+    <img src="../assets/logos/dgca.png" style="height:72px">
+    <span class="sep"></span>
+    <img src="../assets/logos/icao_council_dark.png" style="height:80px">
+  </div>
+  <div class="head">
+    <div class="kick" id="kick"></div>
+    <h1><span id="t1"></span><br><span class="l2" id="t2"></span></h1>
+    <div class="sub" id="sub"></div>
+  </div>
+  <div class="org" id="org"></div>
+  <div class="modes" id="modes"></div>
+  <div class="plate" id="plate"></div>
+</div>
+<script src="../assets/data.js"></script>
+<script src="../assets/banner.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+$('kick').textContent=EVENT.name+' 2026';
+$('t1').textContent=COPY.title[0]; $('t2').textContent=COPY.title[1]; $('sub').textContent=COPY.sub;
+$('org').innerHTML=EVENT.org.map(s=>`<div>${s}</div>`).join('');
+$('plate').innerHTML=`${EVENT.place} <b>·</b> ${EVENT.date}`;
+const svg=$('bg');
+// defs: gold gradient, panel fill
+svg.innerHTML=`<defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F1D79A"/><stop offset="1" stop-color="#B8924A"/></linearGradient>
+  <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#18295F" stop-opacity=".85"/><stop offset="1" stop-color="#0F1B45" stop-opacity=".95"/></linearGradient>
+  <radialGradient id="glow"><stop offset="0" stop-color="#F1D79A" stop-opacity=".9"/><stop offset="1" stop-color="#F1D79A" stop-opacity="0"/></radialGradient>
+</defs>`;
+// faint lat/long graticule behind everything
+const grat=el('g',{stroke:'#8FA6E6','stroke-opacity':.07,'stroke-width':1,fill:'none'},svg);
+for(let i=0;i<=1920;i+=96) el('line',{x1:i,y1:0,x2:i,y2:1080},grat);
+for(let j=0;j<=1080;j+=96) el('line',{x1:0,y1:j,x2:1920,y2:j},grat);
+// bevelled side panels with gold trim (mirrors the client's banner)
+const panel=(x0,x1,flip)=>{const b=40,t=210,btm=960;
+  const pts=flip?[[x1,t],[x0+b,t],[x0,t+b],[x0,btm],[x1,btm]]:[[x0,t],[x1-b,t],[x1,t+b],[x1,btm],[x0,btm]];
+  el('polygon',{points:pts.map(p=>p.join(',')).join(' '),fill:'url(#panel)'},svg);
+  el('polyline',{points:(flip?[[x1+40,t],[x0+b,t],[x0,t+b],[x0,btm+40]]:[[x0-40,t],[x1-b,t],[x1,t+b],[x1,btm+40]]).map(p=>p.join(',')).join(' '),fill:'none',stroke:'url(#gold)','stroke-width':2.5},svg);};
+panel(0,400,false); panel(1520,1920,true);
+// map + routes out of Makassar
+const mg=el('g',{},svg);
+const P=drawMap(mg,{x:440,y:575,s:.65,fill:'#3A58AE',stroke:'#7F9BE8',sw:.6});
+mg.querySelector('path').setAttribute('fill-opacity','.55');
+const hub=P('Makassar');
+const dests=V===1?['Jakarta','Medan','Bali','Balikpapan','Manado','Ambon','Jayapura','Kupang']:['Palu','Mamuju','Kendari','Wakatobi','Manado','Ternate','Balikpapan'];
+const routes=el('g',{fill:'none',stroke:'url(#gold)','stroke-width':2,'stroke-linecap':'round','stroke-dasharray':'2 9'},svg);
+dests.forEach((d,i)=>{const q=P(d),k=(q[0]<hub[0]?.22:-.22);const p=el('path',{d:arcPath(hub,q,k)},routes);
+  el('circle',{cx:q[0],cy:q[1],r:4.5,fill:'#F1D79A'},svg);});
+// planes riding three of the routes (placed at 60% of the path, aligned to its tangent)
+[...routes.children].filter((_,i)=>i%3===0).forEach(p=>{const L=p.getTotalLength(),a=p.getPointAtLength(L*.6),b=p.getPointAtLength(L*.6+1);
+  icon(svg,'airplane',a.x,a.y,30,'#FFFFFF',Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI+90);});
+el('circle',{cx:hub[0],cy:hub[1],r:46,fill:'url(#glow)'},svg);
+el('circle',{cx:hub[0],cy:hub[1],r:17,fill:'none',stroke:'#F1D79A','stroke-width':2},svg);
+el('circle',{cx:hub[0],cy:hub[1],r:7,fill:'#FFFFFF'},svg);
+const lab=el('text',{x:hub[0]+26,y:hub[1]+40,fill:'#F4F6FB','font-family':'Barlow Condensed','font-weight':700,'font-size':24,'letter-spacing':'2'},svg); lab.textContent='MAKASSAR';
+// panel art: big take-off silhouette at the foot of the left panel
+icon(svg,'airplane-takeoff',200,830,190,'rgba(212,178,106,.22)');
+// right panel: transport modes (v2) or aviation + emission pair (v1), gold-ring medallions
+const modes=V===2?[['airplane','Udara'],['ferry','Laut'],['bus','Darat'],['train','Kereta']]:[['airplane','Udara'],['leaf','Emisi ↓']];
+$('modes').innerHTML=modes.map(([n,c])=>`<div class="mode"><svg width="104" height="104" viewBox="0 0 104 104"><circle cx="52" cy="52" r="49" fill="#13235A" stroke="url(#gold)" stroke-width="2.5"/><g transform="translate(26 26) scale(2.1667)"><path d="${ICON[n]}" fill="#F1D79A"/></g></svg>${c}</div>`).join('');
+// the gradient ids live in #bg; inline svgs in .modes reference them too — redefine locally
+document.querySelectorAll('.mode svg').forEach(s=>s.insertAdjacentHTML('afterbegin','<defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F1D79A"/><stop offset="1" stop-color="#B8924A"/></linearGradient></defs>'));
+document.querySelectorAll('.mode circle').forEach(c=>c.setAttribute('stroke','url(#g2)'));
+fit(); window.__ready=true;
+</script></body></html>

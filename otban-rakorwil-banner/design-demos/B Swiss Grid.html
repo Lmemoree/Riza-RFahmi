@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Banner B · Swiss Grid</title>
+<link rel="stylesheet" href="../assets/fonts/fonts.css">
+<!--
+  Direction B · "Swiss Grid" — logic: seconds roulette (35 % 20 + 1 = 16 → PPT #16 Institutional Swiss Minimal:
+  Müller-Brockmann grid, Vignelli restraint). Adapted to the mandated #1F3375 ground (instead of white): 12-col grid,
+  120px margins, hairline rules, one accent (green, carried over from the Rakorwil bumpers), a cropped locator map of Sulawesi
+  with the session's routes, facts in a ruled table. No ornament — the grid is the decoration.
+-->
+<style>
+  :root{--navy:#1F3375;--ink:#F4F6FB;--mute:#A9B8E4;--rule:rgba(244,246,251,.32);--acc:#7BE0A1}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  #stage{position:relative;width:1920px;height:1080px;flex:none;overflow:hidden;background:var(--navy);color:var(--ink);font-family:"Plus Jakarta Sans",sans-serif}
+  .abs{position:absolute}
+  .mono{font:500 17px "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+  .rule{position:absolute;left:120px;right:120px;height:1px;background:var(--rule)}
+  .logos{left:120px;top:62px;display:flex;align-items:center;gap:48px}
+  .logos img{display:block}
+  h1{left:112px;top:292px;margin:0;font-family:Archivo;font-stretch:115%;font-weight:800;font-size:112px;line-height:1;letter-spacing:-.015em;text-transform:uppercase;white-space:nowrap}
+  .idx{left:120px;top:248px;color:var(--acc)}
+  .sub{left:120px;top:584px;width:800px;text-wrap:balance;font:500 30px/1.35 "Plus Jakarta Sans";color:var(--ink)}
+  table{position:absolute;left:120px;top:742px;width:760px;border-collapse:collapse}
+  td{padding:16px 0;border-top:1px solid var(--rule);vertical-align:top;font:500 21px/1.4 "Plus Jakarta Sans"}
+  td.k{width:210px;font:500 15px/1.9 "JetBrains Mono";letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+  svg.full{position:absolute;inset:0}
+</style></head><body>
+<div id="stage">
+  <div class="abs logos">
+    <img src="../assets/logos/kemenhub.png" style="height:100px">
+    <img src="../assets/logos/dgca.png" style="height:62px">
+    <img src="../assets/logos/icao_council_dark.png" style="height:70px">
+  </div>
+  <div class="abs mono" style="right:120px;top:84px;text-align:right;line-height:1.7">Rapat Koordinasi Wilayah 2026<br>Otoritas Bandar Udara Wilayah V Makassar</div>
+  <div class="rule" style="top:200px"></div>
+  <div class="abs mono idx" id="idx"></div>
+  <h1 class="abs" id="title"></h1>
+  <div class="rule" style="top:544px"></div>
+  <div class="abs sub" id="sub"></div>
+  <table id="facts"></table>
+  <svg class="full" id="map" viewBox="0 0 1920 1080"></svg>
+  <div class="rule" style="top:1000px"></div>
+</div>
+<script src="../assets/data.js"></script>
+<script src="../assets/banner.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+$('idx').textContent=(V===1?'01':'02')+' — '+COPY.tag;
+$('title').innerHTML=COPY.title.join('<br>');
+$('sub').textContent=COPY.sub;
+$('facts').innerHTML=[['Acara',EVENT.name],['Tema',EVENT.theme],['Tempat',EVENT.place+' · '+EVENT.date]].map(([k,v])=>`<tr><td class="k">${k}</td><td>${v}</td></tr>`).join('');
+// locator map: Sulawesi crop in the right half of the grid (x 1000–1800, y 560–1000)
+const svg=$('map'), BX=1000, BY=610, BW=800, BH=390;
+svg.innerHTML=`<defs><clipPath id="box"><rect x="${BX}" y="${BY}" width="${BW}" height="${BH}"/></clipPath></defs>`;
+const clip=el('g',{'clip-path':'url(#box)'},svg);
+const s=2.1, mk=IDN.pts.Makassar, ox=BX+380-mk[0]*s, oy=BY+300-mk[1]*s;
+const P=drawMap(el('g',{},clip),{x:ox,y:oy,s,fill:'#2C4794',stroke:'#8FA6E6',sw:.8});
+// fine graticule inside the box only
+const gr=el('g',{stroke:'#F4F6FB','stroke-opacity':.08},clip);
+for(let x=BX;x<=BX+BW;x+=80) el('line',{x1:x,y1:BY,x2:x,y2:BY+BH},gr);
+for(let y=BY;y<=BY+BH;y+=80) el('line',{x1:BX,y1:y,x2:BX+BW,y2:y},gr);
+el('rect',{x:BX,y:BY,width:BW,height:BH,fill:'none',stroke:'rgba(244,246,251,.32)'},svg);
+const hub=P('Makassar'), ACC='#7BE0A1';
+const near=['Palu','Mamuju','Kendari','Wakatobi','Manado','Ternate','Ambon','Balikpapan','Bali','Kupang'];
+const rg=el('g',{fill:'none',stroke:V===1?ACC:'#F4F6FB','stroke-width':2,'stroke-dasharray':V===1?'1 7':'0','stroke-linecap':'round'},clip);
+near.forEach(n=>{const q=P(n); el('path',{d:arcPath(hub,q,.18)},rg); el('circle',{cx:q[0],cy:q[1],r:4,fill:'#F4F6FB'},clip);
+  const t=el('text',{x:q[0]+10,y:q[1]-8,fill:'#A9B8E4','font-family':'JetBrains Mono','font-size':14,'letter-spacing':'1.5'},clip); t.textContent=n.toUpperCase();});
+el('circle',{cx:hub[0],cy:hub[1],r:12,fill:ACC},svg);
+el('circle',{cx:hub[0],cy:hub[1],r:24,fill:'none',stroke:ACC,'stroke-width':1.5},svg);
+const ml=el('text',{x:hub[0]+34,y:hub[1]+8,fill:'#F4F6FB','font-family':'JetBrains Mono','font-size':18,'font-weight':500,'letter-spacing':'2'},svg); ml.textContent='MAKASSAR · UPG';
+// caption row under the title rule: v1 = route legend, v2 = the four modes
+const cap=el('g',{},svg);
+const items=V===1?[['airplane','Rute udara dari Makassar']]:[['airplane','Udara'],['ferry','Laut'],['bus','Darat'],['train','Kereta']];
+items.forEach(([n,c],i)=>{const x=BX+i*200; icon(cap,n,x+16,BY-34,30,i===0?ACC:'#F4F6FB');
+  const t=el('text',{x:x+44,y:BY-27,fill:'#A9B8E4','font-family':'JetBrains Mono','font-size':16,'letter-spacing':'2'},cap); t.textContent=c.toUpperCase();});
+el('text',{x:BX+BW,y:BY+BH+0,fill:'none'},svg);
+fit(); window.__ready=true;
+</script></body></html>
