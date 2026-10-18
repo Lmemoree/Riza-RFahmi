@@ -1,6 +1,6 @@
 # Director notes · Penghargaan Pemenuhan Inventarisasi Data Emisi GRK
 
-1920×1080, 30 fps, about 47.97 s. Look A, card layout B. Music is the user's track (`assets/audio/music.mp3`, 60.06 s, about 119.2 BPM, beat 0.5035 s).
+1920×1080, 30 fps, about 47.97 s. Look A on a #1F3375 (Biru) background, with B's teal rim light, V-spread cards, and reference-style 3D card swing transitions. Music is the user's track (`assets/audio/music.mp3`, 60.06 s, about 119.2 BPM, beat 0.5035 s).
 
 ## Music map (measured with librosa onset strength)
 | Video t | Music t | Event |
@@ -39,3 +39,9 @@ Card cuts are 12 beats (6.04 s) apart, so every transition lands on a beat. Each
 - Music track, spliced as above.
 - SFX: transition/whoosh-fast about 0.35 s before each card cut (−11 dB), transition/whoosh before the outro (−9 dB), impact/logo-reveal-v2 at 37.732 (−5 dB), magic/sparkle on the shimmers (−16 dB).
 - No skill watermark: this is a government ceremony deliverable.
+
+## v2 changes (user request)
+- Background: solid #1F3375 with a lighter blue centre glow, a darker navy floor, and a softened vignette.
+- Cards: V-spread. Text and photo panel open from a shared corner (text rotateY +40°→28°, panel −40°→−28°), mirrored for left-side panels.
+- Transition: the outgoing set spins away up-left (rotateY +58°, rotateZ −13°, it leaves 0.06 s after the beat). The incoming set orbits in from the right (rotateY −62°, rotateZ +10°, z −600) and lands about 0.6 s after the beat with expo-out easing. The whole set, floor included, rolls −4.5° on each cut. A slow ±4° orbit runs while each card holds.
+- Teal (from B): a teal rim on the top edge of every gold letter, a teal edge on the panel's corner side, teal floor glow, and teal in the beam halo and flare.
