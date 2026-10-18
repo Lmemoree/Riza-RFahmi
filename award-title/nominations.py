@@ -183,14 +183,21 @@ def make_el(text, weight, cap_px, tracking_em, npts, seed):
     }
 
 
-def compose(el, alpha, glow_k=1.0, shine=None, diss=None, ext=(0.0, 1.0)):
+def compose(el, alpha, glow_k=1.0, shine=None, diss=None, ext=(0.0, 1.0), reveal=None):
+    """reveal: entry threshold (pixels with n < reveal are solid); diss: exit threshold (n > diss stay)."""
     m = el["mask"]
     keep = 1.0
+    edge = None
     if diss is not None:
         d = el["n"] - diss
         mv = m * np.clip(d / 0.05, 0, 1)
         edge = np.exp(-(d / 0.03) ** 2) * m
         keep = float(np.clip(1.0 - diss, 0, 1))
+    elif reveal is not None:
+        d = reveal - el["n"]
+        mv = m * np.clip(d / 0.05, 0, 1)
+        edge = np.exp(-(d / 0.03) ** 2) * m
+        keep = float(np.clip(reveal, 0, 1))
     else:
         mv = m
     depth = el["cap_h"] * 0.075
@@ -206,7 +213,7 @@ def compose(el, alpha, glow_k=1.0, shine=None, diss=None, ext=(0.0, 1.0)):
         band = np.exp(-((el["q"] - shine) / 0.045) ** 2) * mv
         rgb += band[..., None] * SHINE_COL * 0.85
     rgb += GLOW_COL * (el["glow"] * (0.2 * glow_k * keep))[..., None]
-    if diss is not None:
+    if edge is not None:
         rgb += edge[..., None] * EDGE_COL * 1.6
     return np.concatenate([rgb, a[..., None]], -1) * alpha
 
@@ -447,7 +454,7 @@ def world(t, cam):
     beam_col = np.array([0.84, 0.88, 1.0], np.float32)
     img = 1.0 - (1.0 - img) * (1.0 - b[..., None] * beam_col)
     k = world_brightness(t)
-    return img * k + R.NAVY * (1 - k) * 0.45
+    return img * k + R.ROYAL * (0.20 * (1 - k))     # darkness stays deep royal blue, never grey
 
 
 def ambient(back, frame, t, cam):
@@ -524,7 +531,8 @@ def flash(frame, t, T, amp):
     if t < T - 0.06 or t > T + 1.2:
         return
     e = (t - T + 0.06) / 0.06 if t < T else math.exp(-(t - T) / 0.22)
-    gauss_light(frame, W / 2, 0.45 * H, 0.55 * W, 0.45 * H, np.array([1.0, 0.88, 0.62], np.float32), amp * e)
+    gauss_light(frame, W / 2, 0.45 * H, 0.30 * W, 0.22 * H, np.array([1.0, 0.86, 0.55], np.float32), amp * e)
+    gauss_light(frame, W / 2, 0.45 * H, 0.70 * W, 0.55 * H, np.array([0.45, 0.60, 1.0], np.float32), 0.5 * amp * e)
 
 
 def burst(front, t, T, power, seed):
@@ -597,7 +605,7 @@ def draw_text(t, cam, tbuf, front):
             el = e["el"]
             ax, ay = el["w"] / 2, el["pad"] + el["cap_h"] / 2
             X, Y = cx - ax * f, cy - ay * f
-            alpha, glow_k, shine, diss = 1.0, 1.0, None, None
+            alpha, glow_k, shine, diss, reveal = 1.0, 1.0, None, None, None
             kind = e["kind"]
             if kind == "rise":
                 p = prog(t, r0, r1)
@@ -605,7 +613,9 @@ def draw_text(t, cam, tbuf, front):
                 shine = -0.2 + 1.5 * prog(t, r1 - 0.15, r1 + 0.65)
             elif kind == "swirl":
                 pg = prog(t, r0, r1)
-                alpha = smooth(prog(pg, 0.62, 0.95))
+                # letters solidify where the dust has landed (left to right, noisy edge), no grey cross-fade
+                reveal = -0.1 + 1.2 * prog(pg, 0.56, 1.0)
+                alpha = 1.0 if pg > 0.56 else 0.0
                 glow_k = 1.0 + 3.5 * math.exp(-((t - r1) / 0.14) ** 2)
                 shine = -0.2 + 1.5 * prog(t, r1, r1 + 0.75)
                 if pg < 1 or t < r1 + 0.4:
@@ -626,7 +636,7 @@ def draw_text(t, cam, tbuf, front):
                     front.defocus(tx[near], ty[near], w[near] * 1.2)
             elif kind == "fly":
                 pg = prog(t, r0, r1)
-                alpha = smooth(min(1.0, pg * 3.0))
+                alpha = smooth(min(1.0, pg * 5.0))
                 glow_k = 1.0 + 3.5 * math.exp(-((t - r1) / 0.14) ** 2)
                 shine = -0.2 + 1.5 * prog(t, r1, r1 + 0.75)
             if ex is not None and t >= ex[0]:
@@ -649,7 +659,7 @@ def draw_text(t, cam, tbuf, front):
             if not in_shot or alpha <= 0.003:
                 continue
             ext = cam[3]
-            layer = compose(el, alpha, glow_k, shine, diss, ext)
+            layer = compose(el, alpha, glow_k, shine, diss, ext, reveal if diss is None else None)
             if kind == "fly" and t < r1:
                 pg = prog(t, r0, r1)
                 samples = [0.0, 0.035, 0.07, 0.105] if pg < 1 else [0.0]
