@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Arah A · Gala Malam</title>
+<!--
+  ARAH A · GALA MALAM (logika: rujukan langsung — template "Awards Nomination" yang dikirim user)
+  Asumsi:
+   - [LABEL] belum diisi user → ditampilkan apa adanya sebagai placeholder.
+   - Foto 3 (gedung atap biru) = Syukuran Aminuddin Amir, Luwuk (eliminasi; belum terverifikasi visual).
+  Komposisi kartu: "V-spread" — bidang teks dan panel foto berdiri pada dua bidang yang bertemu
+  membentuk sudut (seperti buku terbuka menghadap kamera), persis grammar video rujukan.
+-->
+<link rel="stylesheet" href="../assets/fonts/montserrat.css">
+<style>
+:root{
+  --navy:#070a1f; --violet:#2a1748; --plum:#160d2c;
+  --g0:#fff7dc; --g1:#f2d891; --g2:#d2a955; --g3:#8c6421; --g4:#e9c977;
+  --gold: linear-gradient(180deg,var(--g0) 0%,var(--g1) 24%,var(--g2) 48%,var(--g3) 63%,var(--g4) 84%,var(--g0) 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;background:#000;overflow:hidden}
+.stage{position:absolute;inset:0;overflow:hidden;font-family:Montserrat,sans-serif;
+  background:
+    radial-gradient(60% 45% at 50% 40%, rgba(70,40,130,.55) 0%, rgba(30,18,64,.35) 45%, transparent 75%),
+    linear-gradient(180deg,#05050d 0%,#0b0a1c 55%,#030308 100%);
+}
+canvas#sky{position:absolute;inset:0}
+/* giant faded words */
+.ghost{position:absolute;font-weight:900;letter-spacing:-.02em;white-space:nowrap;color:#b9a8ff;opacity:.055;filter:blur(2.5px);text-transform:uppercase}
+/* floor */
+.floor{position:absolute;left:0;right:0;top:var(--horizon);bottom:0;
+  background:linear-gradient(180deg,rgba(40,26,80,.55) 0%,rgba(10,8,24,.92) 30%,#020206 100%)}
+.floor::before{content:"";position:absolute;left:0;right:0;top:-1px;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(255,226,160,.55) 30%,rgba(255,240,200,.9) 50%,rgba(255,226,160,.55) 70%,transparent);filter:blur(.6px)}
+.floor::after{content:"";position:absolute;left:10%;right:10%;top:0;height:140px;
+  background:radial-gradient(50% 100% at 50% 0%,rgba(150,110,255,.22),transparent 70%)}
+/* beams */
+.beam{position:absolute;top:-5%;height:110%;width:3px;mix-blend-mode:screen;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,236,190,.0) 8%,rgba(255,236,190,.85) 45%,rgba(255,236,190,.95) 58%,rgba(255,236,190,0) 100%);
+  box-shadow:0 0 18px 4px rgba(255,214,140,.35),0 0 80px 30px rgba(170,130,255,.10)}
+.beam.soft{width:90px;filter:blur(30px);opacity:.35;box-shadow:none}
+.flare{position:absolute;width:900px;height:6px;border-radius:50%;mix-blend-mode:screen;
+  background:radial-gradient(50% 50% at 50% 50%,rgba(255,245,220,.95),rgba(200,170,255,.25) 40%,transparent 70%);filter:blur(1.5px)}
+.glow{position:absolute;border-radius:50%;mix-blend-mode:screen;filter:blur(40px)}
+/* gold type */
+.gold{background:var(--gold);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 0 rgba(60,40,10,.55)) drop-shadow(0 10px 24px rgba(0,0,0,.55))}
+.reflect{-webkit-box-reflect:below 4px linear-gradient(transparent 62%,rgba(0,0,0,.26))}
+.up{text-transform:uppercase}
+.vignette{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(90% 80% at 50% 45%,transparent 55%,rgba(0,0,0,.75) 100%)}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.06;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>")}
+
+/* ===== TITLE SHOT ===== */
+#title{--horizon:68%}
+#title .stack{position:absolute;left:50%;top:22%;transform:translateX(-50%);text-align:center;width:1600px}
+#title .lab{font-weight:700;font-size:26px;letter-spacing:.42em;margin-bottom:22px}
+#title .p1{font-weight:800;font-size:40px;letter-spacing:.34em;margin-bottom:10px}
+#title .p2{font-weight:800;font-size:58px;letter-spacing:.06em;line-height:1.05;margin-bottom:6px}
+#title .p3{font-weight:900;font-size:150px;letter-spacing:-.01em;line-height:.92}
+#title .rule{width:520px;height:1px;margin:26px auto 0;background:linear-gradient(90deg,transparent,#e9c977,transparent)}
+
+/* ===== CARD SHOT ===== */
+#card{--horizon:71%}
+#card .world{position:absolute;inset:0;perspective:1500px;perspective-origin:50% 48%}
+#card .pivot{position:absolute;left:54%;top:0;height:100%;transform-style:preserve-3d}
+#card .panel{position:absolute;bottom:calc(100% - 71% * 1080 / 1080);bottom:29%;left:0;width:700px;height:430px;
+  transform-origin:0 100%;transform:rotateY(-28deg);
+  background:center/cover no-repeat;box-shadow:0 30px 80px rgba(0,0,0,.6);
+  -webkit-box-reflect:below 2px linear-gradient(transparent 60%,rgba(0,0,0,.24))}
+#card .panel::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,rgba(255,240,210,.18) 0%,transparent 30%,transparent 70%,rgba(10,6,30,.45) 100%)}
+#card .text{position:absolute;bottom:29%;right:0;width:900px;text-align:right;
+  transform-origin:100% 100%;transform:rotateY(28deg)}
+#card .t0{font-weight:800;font-size:24px;letter-spacing:.18em;margin-bottom:14px}
+#card .t1{font-weight:800;font-size:40px;letter-spacing:.06em;margin-bottom:8px}
+#card .t2{font-weight:800;font-size:31px;letter-spacing:.02em;line-height:1.15;margin-bottom:4px}
+#card .t3{font-weight:900;font-size:128px;line-height:.9;letter-spacing:-.02em}
+#card .t4{font-weight:800;font-size:46px;letter-spacing:.32em;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="stage" id="stage"></div>
+
+<template id="tpl-title">
+  <div class="stage" id="title">
+    <canvas id="sky" width="1920" height="1080"></canvas>
+    <div class="ghost" style="font-size:430px;left:-180px;top:40px;transform:perspective(1200px) rotateY(18deg)">PENGHARGAAN</div>
+    <div class="ghost" style="font-size:300px;left:620px;top:520px;opacity:.04">EMISI</div>
+    <div class="glow" style="left:610px;top:200px;width:700px;height:420px;background:rgba(120,80,230,.22)"></div>
+    <div class="floor"></div>
+    <div class="beam soft" style="left:17%"></div><div class="beam soft" style="left:79%"></div>
+    <div class="beam" style="left:19.5%"></div><div class="beam" style="left:20.6%;opacity:.4;width:1px"></div>
+    <div class="beam" style="left:80%"></div><div class="beam" style="left:79%;opacity:.4;width:1px"></div>
+    <div class="stack reflect">
+      <div class="lab gold up">[LABEL]</div>
+      <div class="p1 gold up">Penghargaan</div>
+      <div class="p2 gold up">Pemenuhan Inventarisasi Data</div>
+      <div class="p3 gold up">Emisi Gas<br>Rumah Kaca</div>
+    </div>
+    <div class="flare" style="left:510px;top:731px"></div>
+    <div class="glow" style="left:880px;top:700px;width:160px;height:60px;background:rgba(255,230,180,.6);filter:blur(18px)"></div>
+    <div class="vignette"></div><div class="grain"></div>
+  </div>
+</template>
+
+<template id="tpl-card">
+  <div class="stage" id="card">
+    <canvas id="sky" width="1920" height="1080"></canvas>
+    <div class="ghost" style="font-size:380px;left:-60px;top:120px;transform:perspective(1200px) rotateY(-22deg)">NOMINASI</div>
+    <div class="glow" style="left:900px;top:240px;width:800px;height:480px;background:rgba(130,90,255,.22)"></div>
+    <div class="floor"></div>
+    <div class="beam" style="left:54%;opacity:.5"></div>
+    <div class="world"><div class="pivot">
+      <div class="text reflect">
+        <div class="t0 gold up">Penghargaan Emisi Gas Rumah Kaca</div>
+        <div class="t1 gold up">Nominasi 1</div>
+        <div class="t2 gold up">Unit Penyelenggara<br>Bandar Udara</div>
+        <div class="t3 gold up">Lagaligo</div>
+        <div class="t4 gold up">Bua</div>
+      </div>
+      <div class="panel" style="background-image:url(../assets/img/lagaligo.jpg)"></div>
+    </div></div>
+    <div class="flare" style="left:540px;top:765px;width:1100px"></div>
+    <div class="vignette"></div><div class="grain"></div>
+  </div>
+</template>
+
+<script>
+const shot=(location.hash||'#title').slice(1);
+const stage=document.getElementById('stage');
+stage.replaceWith(document.getElementById('tpl-'+shot).content.cloneNode(true));
+// seeded starfield + dust + bokeh (deterministic)
+let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;
+const c=document.getElementById('sky'),x=c.getContext('2d');
+for(let i=0;i<700;i++){const a=r()*r()*.9;x.fillStyle=`rgba(${200+r()*55|0},${200+r()*40|0},255,${a})`;x.fillRect(r()*1920,r()*1080*.75,r()<.97?1:2,r()<.97?1:2)}
+for(let i=0;i<70;i++){const px=r()*1920,py=r()*1080,rad=1+r()*3;const g=x.createRadialGradient(px,py,0,px,py,rad*3);g.addColorStop(0,'rgba(255,230,190,.55)');g.addColorStop(1,'rgba(255,230,190,0)');x.fillStyle=g;x.beginPath();x.arc(px,py,rad*3,0,7);x.fill()}
+for(let i=0;i<9;i++){const px=r()*1920,py=r()*600,rad=30+r()*70;const g=x.createRadialGradient(px,py,0,px,py,rad);g.addColorStop(0,'rgba(200,170,255,.10)');g.addColorStop(.7,'rgba(200,170,255,.06)');g.addColorStop(1,'rgba(200,170,255,0)');x.fillStyle=g;x.beginPath();x.arc(px,py,rad,0,7);x.fill()}
+</script>
+</body>
+</html>
