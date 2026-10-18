@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Penghargaan Emisi GRK · Promo</title>
+<!--
+  Look A (Gala Malam) + card layout B. Timeline locked to assets/audio/music.mp3 — see director-notes.md.
+  Everything is a pure function of t: renderFrame(t) is called per frame by render.mjs (no rAF, no Math.random).
+  Open in a browser to preview: it plays in real time with the music (click once to allow audio), or use #t=12.3 to freeze.
+-->
+<link rel="stylesheet" href="assets/fonts/montserrat.css">
+<style>
+:root{
+  --g0:#fff7dc; --g1:#f2d891; --g2:#d2a955; --g3:#8c6421; --g4:#e9c977;
+  --goldgrad: linear-gradient(180deg,var(--g0) 0%,var(--g1) 24%,var(--g2) 48%,var(--g3) 63%,var(--g4) 84%,var(--g0) 100%);
+  --sweep: linear-gradient(105deg,rgba(255,255,255,0) 38%,rgba(255,250,232,.95) 50%,rgba(255,255,255,0) 62%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;background:#000;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;font-family:Montserrat,sans-serif;
+  background:linear-gradient(180deg,#05050d 0%,#0b0a1c 55%,#030308 100%);transform-origin:0 0}
+.abs{position:absolute}
+#glow{left:0;top:0;width:1920px;height:1080px;
+  background:radial-gradient(34% 30% at 50% 40%, rgba(80,46,150,.55) 0%, rgba(34,20,72,.32) 50%, transparent 100%)}
+#stars{left:-150px;top:0}
+#dust{left:0;top:0}
+.ghoststrip{white-space:nowrap;font-weight:900;text-transform:uppercase;color:#b9a8ff;letter-spacing:-.02em}
+#ghostFar{top:30px;font-size:430px;opacity:.045;filter:blur(4px)}
+#ghostNear{top:470px;font-size:290px;opacity:.05;filter:blur(2.5px)}
+#floor{left:0;width:1920px;bottom:0;
+  background:linear-gradient(180deg,rgba(40,26,80,.55) 0%,rgba(10,8,24,.92) 30%,#020206 100%)}
+#floor::after{content:"";position:absolute;left:10%;right:10%;top:0;height:150px;
+  background:radial-gradient(50% 100% at 50% 0%,rgba(150,110,255,.22),transparent 70%)}
+#hline{left:0;width:1920px;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(255,226,160,.5) 28%,rgba(255,242,205,.95) 50%,rgba(255,226,160,.5) 72%,transparent);filter:blur(.6px)}
+.beam{top:-60px;height:1200px;width:3px;mix-blend-mode:screen;
+  background:linear-gradient(180deg,transparent 0%,rgba(255,236,190,0) 8%,rgba(255,236,190,.85) 45%,rgba(255,236,190,.95) 58%,rgba(255,236,190,0) 100%);
+  box-shadow:0 0 18px 4px rgba(255,214,140,.35),0 0 80px 30px rgba(170,130,255,.10)}
+.beam.thin{width:1px;box-shadow:0 0 8px 2px rgba(255,214,140,.25)}
+.beam.soft{width:120px;filter:blur(34px);box-shadow:none}
+#flare{width:1300px;height:7px;border-radius:50%;mix-blend-mode:screen;
+  background:radial-gradient(50% 50% at 50% 50%,rgba(255,246,222,.95),rgba(200,170,255,.25) 40%,transparent 70%);filter:blur(1.5px)}
+#flareCore{width:220px;height:70px;border-radius:50%;mix-blend-mode:screen;background:rgba(255,232,185,.65);filter:blur(20px)}
+#flash{left:0;top:0;width:1920px;height:1080px;mix-blend-mode:screen;
+  background:radial-gradient(45% 40% at 50% 55%,rgba(255,236,196,.9),rgba(160,120,255,.25) 60%,transparent 100%)}
+#vignette{left:0;top:0;width:1920px;height:1080px;background:radial-gradient(90% 80% at 50% 45%,transparent 55%,rgba(0,0,0,.78) 100%)}
+#grain{left:0;top:0;width:1920px;height:1080px;opacity:.06;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='3'/></filter><rect width='220' height='220' filter='url(%23n)'/></svg>")}
+#black{left:0;top:0;width:1920px;height:1080px;background:#000}
+
+/* scenes */
+.scene{position:absolute;left:0;top:0;width:1920px;height:1080px;display:none}
+.reflect{-webkit-box-reflect:below 4px linear-gradient(transparent 63%,rgba(0,0,0,.27))}
+.gl{white-space:nowrap;text-transform:uppercase;filter:drop-shadow(0 2px 0 rgba(60,40,10,.55)) drop-shadow(0 10px 22px rgba(0,0,0,.55))}
+.ch{display:inline-block;color:transparent;-webkit-text-fill-color:transparent;
+  background-image:var(--sweep),var(--goldgrad);background-repeat:no-repeat;
+  -webkit-background-clip:text;background-clip:text;
+  background-position:calc(var(--sx,-99999) * 1px - var(--ox) * 1px) 0, calc(var(--ox) * -1px) 0;
+  will-change:transform,opacity}
+.sp{display:inline-block;width:.28em}
+
+/* title + outro stacks */
+.tstack{position:absolute;left:0;width:1920px;text-align:center}
+.tstack .p1{font-weight:800;letter-spacing:.34em;margin-bottom:10px;padding-left:.34em}
+.tstack .p2{font-weight:800;letter-spacing:.06em;line-height:1.05;margin-bottom:8px}
+.tstack .p3{font-weight:900;letter-spacing:-.01em;line-height:.93}
+#title .p1{font-size:40px} #title .p2{font-size:58px} #title .p3{font-size:150px}
+#outro .p1{font-size:34px} #outro .p2{font-size:50px} #outro .p3{font-size:128px}
+#row{display:flex;justify-content:center;align-items:stretch;margin-top:36px;padding-bottom:16px}
+#row .nm{padding:0 22px;text-align:center}
+#row .nm + .nm{border-left:1px solid rgba(233,201,119,.55)}
+#row .a{font-weight:800;font-size:24px;letter-spacing:.04em}
+#row .c{font-weight:700;font-size:16px;letter-spacing:.32em;margin-top:6px;padding-left:.32em}
+
+/* nominee cards */
+.card .persp{position:absolute;inset:0;perspective:1600px;perspective-origin:50% 45%}
+.card .panel{position:absolute;bottom:28%;width:720px;height:450px;overflow:hidden;
+  box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(240,210,150,.35);
+  -webkit-box-reflect:below 2px linear-gradient(transparent 60%,rgba(0,0,0,.24))}
+.card .ph{position:absolute;inset:0;background:center/cover no-repeat}
+.card .shade{position:absolute;inset:0}
+.card.R .panel{left:1010px;transform-origin:0 100%}
+.card.L .panel{left:190px;transform-origin:100% 100%}
+.card.R .shade{background:linear-gradient(100deg,rgba(255,240,210,.16) 0%,transparent 28%,transparent 70%,rgba(5,4,18,.5) 100%)}
+.card.L .shade{background:linear-gradient(260deg,rgba(255,240,210,.16) 0%,transparent 28%,transparent 70%,rgba(5,4,18,.5) 100%)}
+.card .txt{position:absolute;bottom:28%;width:820px}
+.card.R .txt{left:140px;text-align:left}
+.card.L .txt{left:960px;text-align:right}
+.card .t0{font-weight:800;font-size:22px;letter-spacing:.2em;margin-bottom:18px}
+.card .t1{font-weight:800;font-size:38px;letter-spacing:.08em;margin-bottom:10px}
+.card .t2{font-weight:800;font-size:30px;letter-spacing:.03em;line-height:1.16}
+.card .t2.last{margin-bottom:8px}
+.card .t3{font-weight:900;line-height:.92;letter-spacing:-.02em}
+.card .t4{font-weight:800;font-size:44px;letter-spacing:.34em;margin-top:12px}
+.card.L .t4{padding-right:0;margin-right:-.34em}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><filter id="mblur" x="-15%" y="-2%" width="130%" height="104%" color-interpolation-filters="sRGB"><feGaussianBlur id="mbv" stdDeviation="0 0"/></filter></svg>
+<div id="stage">
+  <div id="glow" class="abs"></div>
+  <canvas id="stars" class="abs" width="2220" height="820"></canvas>
+  <div id="ghostFar" class="abs ghoststrip"></div>
+  <div id="ghostNear" class="abs ghoststrip"></div>
+  <div id="floor" class="abs"></div>
+  <div id="beams"></div>
+  <canvas id="dust" class="abs" width="1920" height="1080"></canvas>
+  <div id="cam" class="abs" style="left:0;top:0;width:1920px;height:1080px">
+    <div id="title" class="scene"></div>
+    <div id="cards"></div>
+    <div id="outro" class="scene"></div>
+  </div>
+  <div id="hline" class="abs"></div>
+  <div id="flare" class="abs"></div>
+  <div id="flareCore" class="abs"></div>
+  <div id="flash" class="abs"></div>
+  <div id="vignette" class="abs"></div>
+  <div id="grain" class="abs"></div>
+  <div id="black" class="abs"></div>
+</div>
+
+<script>
+// ---------- timeline (seconds; measured from the music, see director-notes.md) ----------
+const CUTS = [7.523, 13.572, 19.598, 25.646, 31.707, 37.732];   // title→N1 … N5→outro
+const END = 47.971;
+const OUTRO_HITS = { shimmer: 37.732 + (54.38 - 49.816), flash: 37.732 + (58.41 - 49.816) };
+const NOMS = [
+  { l1: ['UNIT PENYELENGGARA', 'BANDAR UDARA'], l2: ['LAGALIGO'], city: 'BUA', img: 'lagaligo.jpg', side: 'R' },
+  { l1: ['BANDAR UDARA', 'INTERNASIONAL'], l2: ['SULTAN', 'HASANUDDIN'], city: 'MAKASSAR', img: 'sultan-hasanuddin.jpg', side: 'L' },
+  { l1: ['UNIT PENYELENGGARA', 'BANDAR UDARA'], l2: ['HALUOLEO'], city: 'KENDARI', img: 'haluoleo.jpg', side: 'R' },
+  { l1: ['UNIT PENYELENGGARA', 'BANDAR UDARA'], l2: ['MUTIARA', 'SIS AL-JUFRI'], city: 'PALU', img: 'mutiara-sis-al-jufri.jpg', side: 'L' },
+  { l1: ['UNIT PENYELENGGARA', 'BANDAR UDARA'], l2: ['SYUKURAN', 'AMINUDDIN', 'AMIR'], city: 'LUWUK', img: 'syukuran-aminuddin-amir.jpg', side: 'R' },
+];
+const ROW = [['LAGALIGO', 'BUA'], ['SULTAN HASANUDDIN', 'MAKASSAR'], ['HALUOLEO', 'KENDARI'], ['MUTIARA SIS AL-JUFRI', 'PALU'], ['SYUKURAN AMINUDDIN AMIR', 'LUWUK']];
+
+// ---------- math ----------
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, p) => a + (b - a) * p;
+const prog = (t, a, d) => clamp((t - a) / d);
+const eOutCubic = p => 1 - Math.pow(1 - p, 3);
+const eOutExpo = p => p >= 1 ? 1 : 1 - Math.pow(2, -10 * p);
+const eInOutCubic = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+const eInOutSine = p => -(Math.cos(Math.PI * p) - 1) / 2;
+const eOutBack = p => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(p - 1, 3) + c1 * Math.pow(p - 1, 2); };
+let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const $ = id => document.getElementById(id);
+const el = (tag, cls, parent, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; if (parent) parent.appendChild(e); return e; };
+
+// ---------- build ----------
+const LINES = [];   // every gold line: {line, chars[], W, sweep:[start,dur]}
+function goldLine(parent, cls, text) {
+  const line = el('div', 'gl ' + cls, parent);
+  const chars = [];
+  for (const ch of text) {
+    if (ch === ' ') { el('span', 'sp', line); continue; }
+    chars.push(el('span', 'ch', line, ch));
+  }
+  const rec = { line, chars, anim: null, sweeps: [] };
+  LINES.push(rec);
+  return rec;
+}
+function buildTitle(root, withRow) {
+  const st = el('div', 'tstack reflect', root);
+  const L = {
+    p1: goldLine(st, 'p1', 'PENGHARGAAN'),
+    p2: goldLine(st, 'p2', 'PEMENUHAN INVENTARISASI DATA'),
+    p3a: goldLine(st, 'p3', 'EMISI GAS'),
+    p3b: goldLine(st, 'p3', 'RUMAH KACA'),
+  };
+  let row = null;
+  if (withRow) {
+    row = el('div', '', st); row.id = 'row';
+    row.items = ROW.map(([a, c]) => { const n = el('div', 'nm', row); const la = goldLine(n, 'a', a); const lc = goldLine(n, 'c', c); return { n, la, lc }; });
+  }
+  return { st, L, row };
+}
+const TITLE = buildTitle($('title'), false);
+const OUTRO = buildTitle($('outro'), true);
+const CARDS = NOMS.map((d, i) => {
+  const root = el('div', 'scene card ' + d.side, $('cards'));
+  const persp = el('div', 'persp', root);
+  const panel = el('div', 'panel', persp);
+  const ph = el('div', 'ph', panel); ph.style.backgroundImage = `url(assets/img/${d.img})`;
+  el('div', 'shade', panel);
+  const txt = el('div', 'txt reflect', root);
+  const t0 = goldLine(txt, 't0', 'PENGHARGAAN EMISI GAS RUMAH KACA');
+  const t1 = goldLine(txt, 't1', 'NOMINASI ' + (i + 1));
+  const t2 = d.l1.map((s, k) => goldLine(txt, 't2' + (k === d.l1.length - 1 ? ' last' : ''), s));
+  const t3 = d.l2.map(s => goldLine(txt, 't3', s));
+  const t4 = goldLine(txt, 't4', d.city);
+  return { d, root, panel, ph, txt, t0, t1, t2, t3, t4, start: CUTS[i], end: CUTS[i + 1] };
+});
+
+// ghost strips + beams
+$('ghostFar').textContent = ('PENGHARGAAN EMISI NOMINASI ').repeat(4);
+$('ghostNear').textContent = ('NOMINASI PENGHARGAAN EMISI ').repeat(5);
+const BEAMS = {};
+[['L', 'soft', 360], ['R', 'soft', 1500], ['L1', '', 374], ['L2', 'thin', 395], ['R1', '', 1536], ['R2', 'thin', 1517], ['C', '', 958], ['Cs', 'soft', 900]]
+  .forEach(([k, c, x]) => { const b = el('div', 'abs beam ' + c, $('beams')); b.style.left = x + 'px'; BEAMS[k] = b; });
+
+// stars (static, seeded)
+{
+  const c = $('stars').getContext('2d');
+  for (let i = 0; i < 900; i++) { const a = rnd() * rnd() * .9; c.fillStyle = `rgba(${200 + rnd() * 55 | 0},${200 + rnd() * 40 | 0},255,${a})`; const s = rnd() < .97 ? 1 : 2; c.fillRect(rnd() * 2220, rnd() * 820, s, s); }
+}
+const DUST = Array.from({ length: 110 }, () => ({ x: rnd() * 1920, y: rnd() * 1080, vx: 6 + rnd() * 22, vy: -4 + rnd() * 6, r: 0.8 + rnd() * 2.6, ph: rnd() * 6.28, z: .3 + rnd() * .9 }));
+const BOKEH = Array.from({ length: 10 }, () => ({ x: rnd() * 1920, y: rnd() * 640, r: 30 + rnd() * 80, vx: 2 + rnd() * 6, a: .05 + rnd() * .06 }));
+
+// lay out: per-letter gold alignment + auto-fit card names
+function fitNames() {
+  for (const c of CARDS) {
+    let size = 150;
+    for (const l of c.t3) l.line.style.fontSize = size + 'px';
+    const maxW = Math.max(...c.t3.map(l => l.line.scrollWidth));
+    size = Math.min(150, Math.floor(size * 800 / maxW));
+    // height budget: whole block must stay below ~y=150
+    const budget = 1080 * .72 - 150 - (c.t3.length ? 0 : 0);
+    for (const l of c.t3) l.line.style.fontSize = size + 'px';
+    const h = c.txt.offsetHeight;
+    if (h > budget) { size = Math.floor(size * budget / h); for (const l of c.t3) l.line.style.fontSize = size + 'px'; }
+    c.nameSize = size;
+  }
+}
+function alignGold() {
+  for (const L of LINES) {
+    if (!L.chars.length) continue;
+    const first = L.chars[0].offsetLeft, last = L.chars[L.chars.length - 1];
+    const W = last.offsetLeft + last.offsetWidth - first, H = L.chars[0].offsetHeight;
+    L.W = W;
+    for (const ch of L.chars) {
+      ch.style.setProperty('--ox', ch.offsetLeft - first);
+      ch.style.backgroundSize = `${W}px ${H}px, ${W}px ${H}px`;
+    }
+  }
+}
+
+// ---------- per-frame helpers ----------
+function letters(L, t, t0, stagger, kind) {
+  const n = L.chars.length;
+  for (let i = 0; i < n; i++) {
+    const ch = L.chars[i];
+    if (kind === 'depth') {
+      const p = eOutCubic(prog(t, t0 + i * stagger, .8));
+      ch.style.opacity = clamp(p * 1.7);
+      ch.style.transform = p >= 1 ? 'none' : `perspective(700px) translate3d(0,${(1 - p) * 26}px,${(1 - p) * -520}px) rotateX(${(1 - p) * 38}deg)`;
+      ch.style.filter = p >= 1 ? 'none' : `blur(${(1 - p) * 10}px)`;
+    } else { // pop
+      const q = prog(t, t0 + i * stagger, .5), p = eOutBack(q);
+      ch.style.opacity = clamp(q * 2.2);
+      ch.style.transform = q >= 1 ? 'none' : `translateY(${(1 - q) * 22}px) scale(${.15 + .85 * p})`;
+      ch.style.filter = q >= 1 ? 'none' : `blur(${(1 - eOutCubic(q)) * 7}px)`;
+    }
+  }
+}
+function sweep(L, t, ts, dur) {
+  if (!L.W) return;
+  const p = prog(t, ts, dur);
+  const sx = p <= 0 || p >= 1 ? -99999 : lerp(-L.W * .62, L.W * .62, eInOutSine(p));
+  L.line.style.setProperty('--sx', sx);
+}
+function sweepMany(arr, t, ts, dur) { arr.forEach(L => sweep(L, t, ts, dur)); }
+// whip transition around a cut: s∈[0,1], peak blur on the beat
+const WHIP = .3;
+function whipS(t, c) { return eInOutCubic(prog(t, c - WHIP, 2 * WHIP)); }
+
+let lastBlur = -1;
+function setBlur(px) {
+  px = Math.round(px * 2) / 2;
+  if (px === lastBlur) return; lastBlur = px;
+  $('mbv').setAttribute('stdDeviation', `${px} 0`);
+  $('cam').style.filter = px > 0.4 ? 'url(#mblur)' : 'none';
+}
+
+// ---------- render ----------
+function renderFrame(t) {
+  // which segment?  -1 = title, 0..4 = cards, 5 = outro
+  let seg = -1; for (let i = 0; i < CUTS.length; i++) if (t >= CUTS[i]) seg = i;
+  // nearest cut for whip
+  let blur = 0, bgShift = 0;
+  CUTS.forEach((c, i) => { const s = whipS(t, c); bgShift += s; if (s > 0 && s < 1 && i < 5) blur = Math.max(blur, Math.sin(Math.PI * s) * 40); });
+
+  // ---- background ----
+  const hz = t < CUTS[0] - WHIP ? .68 : t < CUTS[0] + WHIP ? lerp(.68, .72, whipS(t, CUTS[0])) : .72;
+  const hzPx = 1080 * hz;
+  $('floor').style.top = hzPx + 'px';
+  $('hline').style.top = (hzPx - 1) + 'px';
+  const bx = -bgShift * 260 - t * 6;
+  $('ghostFar').style.transform = `translateX(${-300 + bx * .35 - t * 10}px)`;
+  $('ghostNear').style.transform = `translateX(${-900 + bx * .7 - t * 16}px)`;
+  $('stars').style.transform = `translateX(${bx * .08}px)`;
+  $('glow').style.transform = `translateX(${Math.sin(t * .23) * 30}px)`;
+  // dust + bokeh
+  const dc = $('dust').getContext('2d'); dc.clearRect(0, 0, 1920, 1080);
+  for (const b of BOKEH) {
+    const x = ((b.x + b.vx * t + bx * .25) % 2100 + 2100) % 2100 - 90;
+    const g = dc.createRadialGradient(x, b.y, 0, x, b.y, b.r); g.addColorStop(0, `rgba(205,175,255,${b.a})`); g.addColorStop(.75, `rgba(205,175,255,${b.a * .6})`); g.addColorStop(1, 'rgba(205,175,255,0)');
+    dc.fillStyle = g; dc.beginPath(); dc.arc(x, b.y, b.r, 0, 6.3); dc.fill();
+  }
+  for (const d of DUST) {
+    const x = ((d.x + d.vx * t + bx * d.z * .6) % 1960 + 1960) % 1960 - 20;
+    const y = d.y + d.vy * t + Math.sin(t * .7 + d.ph) * 8;
+    const a = (.35 + .35 * Math.sin(t * 1.3 + d.ph)) * d.z;
+    const g = dc.createRadialGradient(x, y, 0, x, y, d.r * 3); g.addColorStop(0, `rgba(255,232,190,${a})`); g.addColorStop(1, 'rgba(255,232,190,0)');
+    dc.fillStyle = g; dc.beginPath(); dc.arc(x, y, d.r * 3, 0, 6.3); dc.fill();
+  }
+  // beams: title/outro pair vs card centre beam
+  const flick = .84 + .09 * Math.sin(t * 7.1) + .07 * Math.sin(t * 13.3 + 1.1);
+  const pairOn = seg === -1 ? clamp(1 - whipS(t, CUTS[0])) : seg === 5 ? eOutCubic(prog(t, CUTS[5], 1.2)) : 0;
+  const cenOn = seg >= 0 && seg < 5 ? 1 - Math.max(whipS(t, CUTS[0]) < 1 ? 1 - whipS(t, CUTS[0]) : 0, whipS(t, CUTS[5])) : (seg === -1 ? whipS(t, CUTS[0]) : 1 - whipS(t, CUTS[5]));
+  const flashBoost = 1 + 1.4 * Math.exp(-Math.pow((t - OUTRO_HITS.flash) / .25, 2));
+  const titleIn = eOutCubic(prog(t, .09, 1.6));
+  for (const k of ['L', 'L1', 'L2', 'R', 'R1', 'R2']) BEAMS[k].style.opacity = pairOn * flick * (seg === -1 ? titleIn : 1) * (k.length === 1 ? .35 : 1) * flashBoost;
+  const spread = seg === 5 ? 230 * eOutExpo(prog(t, CUTS[5], 1.6)) : 0;
+  for (const k of ['L', 'L1', 'L2']) BEAMS[k].style.transform = `translateX(${-spread}px)`;
+  for (const k of ['R', 'R1', 'R2']) BEAMS[k].style.transform = `translateX(${spread}px)`;
+  BEAMS.C.style.opacity = clamp(cenOn) * .5 * flick; BEAMS.Cs.style.opacity = clamp(cenOn) * .25;
+  // flare on horizon
+  const fl = .55 + .25 * Math.sin(t * 2.1) + (flashBoost - 1) * .6;
+  $('flare').style.cssText = `left:${960 - 650 + Math.sin(t * .4) * 60}px;top:${hzPx - 3}px;opacity:${fl * (seg === -1 ? titleIn : 1)}`;
+  $('flareCore').style.cssText = `left:${960 - 110 + Math.sin(t * .4) * 60}px;top:${hzPx - 35}px;opacity:${fl * .8 * (seg === -1 ? titleIn : 1)}`;
+  // outro impact flash
+  const fi = Math.exp(-Math.pow(Math.max(0, t - CUTS[5]) / .35, 1.2)) * (t >= CUTS[5] - .02 ? 1 : 0) + .6 * Math.exp(-Math.pow((t - OUTRO_HITS.flash) / .2, 2));
+  $('flash').style.opacity = clamp(fi * .55);
+  // black in/out
+  const blackIn = 1 - eOutCubic(prog(t, .09, 1.1));
+  const blackOut = eInOutSine(prog(t, END - 1.35, 1.3));
+  $('black').style.opacity = Math.max(blackIn, blackOut);
+
+  // ---- camera blur ----
+  setBlur(blur);
+
+  // ---- TITLE ----
+  const tv = t < CUTS[0] + WHIP;
+  $('title').style.display = tv ? 'block' : 'none';
+  if (tv) {
+    const s = whipS(t, CUTS[0]);
+    const push = lerp(1, 1.06, eInOutSine(prog(t, 0, CUTS[0])));
+    $('title').style.transform = `perspective(1600px) translateX(${-s * 1600}px) rotateY(${s * 26}deg) scale(${push})`;
+    TITLE.st.style.bottom = (1080 - hzPx) + 'px';
+    letters(TITLE.L.p1, t, .56, .035, 'depth');
+    letters(TITLE.L.p2, t, 1.51, .02, 'depth');
+    letters(TITLE.L.p3a, t, 2.51, .06, 'depth');
+    letters(TITLE.L.p3b, t, 3.02, .06, 'depth');
+    sweepMany([TITLE.L.p1, TITLE.L.p2], t, 4.02, 1.1);
+    sweepMany([TITLE.L.p3a, TITLE.L.p3b], t, 4.12, 1.3);
+  }
+
+  // ---- CARDS ----
+  CARDS.forEach((c, i) => {
+    const vis = t >= c.start - WHIP && t < c.end + WHIP;
+    c.root.style.display = vis ? 'block' : 'none';
+    if (!vis) return;
+    const u = t - c.start, D = c.end - c.start;
+    const sIn = whipS(t, c.start), sOut = whipS(t, c.end);
+    const settle = eOutExpo(prog(u, WHIP, 1.4));
+    const x = (1 - sIn) * 1600 + (1 - settle) * 90 - sOut * 1600;
+    const ry = -(1 - sIn) * 26 + sOut * 26;
+    const dolly = lerp(1, 1.035, eInOutSine(prog(u, 0, D)));
+    c.root.style.transform = `perspective(1600px) translateX(${x}px) rotateY(${ry}deg) scale(${dolly})`;
+    const dir = c.d.side === 'R' ? -1 : 1;
+    const pr = lerp(34, 25, eOutExpo(prog(u, 0, 1.4)));
+    c.panel.style.transform = `translateX(${-dir * u * 5}px) rotateY(${dir * pr}deg)`;
+    c.ph.style.transform = `scale(${lerp(1.04, 1.12, prog(u, -.3, D + .6))}) translateX(${dir * -u * 4}px)`;
+    c.txt.style.transform = `translateX(${dir * u * 4}px)`;
+    letters(c.t0, t, c.start + .30, .012, 'pop');
+    letters(c.t1, t, c.start + .55, .03, 'pop');
+    c.t2.forEach((L, k) => letters(L, t, c.start + .80 + k * .12, .014, 'pop'));
+    c.t3.forEach((L, k) => letters(L, t, c.start + 1.05 + k * .28, .045, 'pop'));
+    letters(c.t4, t, c.start + 1.75 + (c.t3.length - 1) * .28, .05, 'pop');
+    sweepMany([c.t0, c.t1, ...c.t2, ...c.t3, c.t4], t, c.start + 2.6 + (c.t3.length - 1) * .2, 1.25);
+  });
+
+  // ---- OUTRO ----
+  const ov = t >= CUTS[5] - WHIP;
+  $('outro').style.display = ov ? 'block' : 'none';
+  if (ov) {
+    const w = t - CUTS[5];
+    const pull = eOutExpo(prog(w, -WHIP, 1.5));
+    const push = lerp(1, 1.05, eInOutSine(prog(w, 1.2, 8.5)));
+    $('outro').style.transform = `perspective(1600px) translateX(${(1 - pull) * 700}px) rotateY(${-(1 - pull) * 18}deg) scale(${lerp(1.22, 1, pull) * push})`;
+    $('outro').style.opacity = clamp(prog(w, -WHIP, .35));
+    OUTRO.st.style.bottom = (1080 - hzPx) + 'px';
+    letters(OUTRO.L.p1, t, CUTS[5] - .05, .02, 'depth');
+    letters(OUTRO.L.p2, t, CUTS[5] + .05, .012, 'depth');
+    letters(OUTRO.L.p3a, t, CUTS[5] + .1, .035, 'depth');
+    letters(OUTRO.L.p3b, t, CUTS[5] + .3, .035, 'depth');
+    OUTRO.row.items.forEach((it, j) => {
+      const p = eOutCubic(prog(w, 1.6 + j * .22, .7));
+      it.n.style.opacity = p; it.n.style.transform = `translateY(${(1 - p) * 16}px)`;
+      it.n.style.filter = p >= 1 ? 'none' : `blur(${(1 - p) * 5}px)`;
+    });
+    sweepMany([OUTRO.L.p1, OUTRO.L.p2], t, CUTS[5] + 1.0, 1.0);
+    sweepMany([OUTRO.L.p3a, OUTRO.L.p3b], t, OUTRO_HITS.shimmer - .15, 1.4);
+    sweepMany(OUTRO.row.items.flatMap(it => [it.la, it.lc]), t, OUTRO_HITS.shimmer + .5, 1.2);
+  }
+}
+
+// ---------- boot ----------
+window.__ready = (async () => {
+  await document.fonts.load('900 100px Montserrat'); await document.fonts.ready;
+  await Promise.all(NOMS.map(d => { const im = new Image(); im.src = 'assets/img/' + d.img; return im.decode(); }));
+  // layout needs scenes displayed
+  document.querySelectorAll('.scene').forEach(s => s.style.display = 'block');
+  fitNames(); alignGold();
+  document.querySelectorAll('.scene').forEach(s => s.style.display = 'none');
+  window.renderFrame = renderFrame;
+  return true;
+})();
+
+// live preview (not used by the renderer)
+if (!navigator.webdriver) {
+  window.__ready.then(() => {
+    // fit stage to window
+    const fit = () => { const k = Math.min(innerWidth / 1920, innerHeight / 1080); $('stage').style.transform = `translate(${(innerWidth - 1920 * k) / 2}px,${(innerHeight - 1080 * k) / 2}px) scale(${k})`; document.body.style.width = innerWidth + 'px'; document.body.style.height = innerHeight + 'px'; };
+    fit(); addEventListener('resize', fit);
+    const m = location.hash.match(/t=([\d.]+)/);
+    if (m) { renderFrame(+m[1]); return; }
+    const audio = new Audio('assets/audio/promo-mix.m4a');
+    let t0 = performance.now();
+    const loop = () => { const t = audio.paused ? (performance.now() - t0) / 1000 : audio.currentTime; renderFrame(t % END); requestAnimationFrame(loop); };
+    addEventListener('click', () => { audio.currentTime = 0; audio.play(); });
+    loop();
+  });
+}
+</script>
+</body>
+</html>
