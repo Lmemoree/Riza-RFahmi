@@ -45,3 +45,11 @@ Card cuts are 12 beats (6.04 s) apart, so every transition lands on a beat. Each
 - Cards: V-spread. Text and photo panel open from a shared corner (text rotateY +40°→28°, panel −40°→−28°), mirrored for left-side panels.
 - Transition: the outgoing set spins away up-left (rotateY +58°, rotateZ −13°, it leaves 0.06 s after the beat). The incoming set orbits in from the right (rotateY −62°, rotateZ +10°, z −600) and lands about 0.6 s after the beat with expo-out easing. The whole set, floor included, rolls −4.5° on each cut. A slow ±4° orbit runs while each card holds.
 - Teal (from B): a teal rim on the top edge of every gold letter, a teal edge on the panel's corner side, teal floor glow, and teal in the beam halo and flare.
+
+## v3 (current): user request "create A design, remove 3D card entry, intro like the reference, darker navy, more teal, use my music"
+- **Music:** `assets/audio/music-nomination.mp3` (51.1 s, about 76 BPM, audible until about 46.8 s). Played straight with no splice; the video ends at 46.9 s.
+- **Cuts** (strongest percussive hits near an 8-beat grid): 6.77 · 12.96 · 19.39 · 25.31 · 31.68 · 38.66 (the big hit opens the outro). Cards run 5.9–7.0 s.
+- **Intro, like the reference:** at 0.55 s "EMISI GAS" appears alone in dim silver with "RUMAH KACA" tucked behind it. On the 2.22 s hit the stack unfolds vertically (PENGHARGAAN and PEMENUHAN INVENTARISASI DATA slide up from behind, RUMAH KACA slides down) while the light warms from silver to gold and the beams come up. Shimmer on the 4.35 s hit.
+- **Outro:** the same unfold. The lockup appears on the 38.66 s hit and unfolds on the 40.00 s hit, the nominee row fades in from 41.0 s, shimmer at 42.4 s, final flash at 45.3 s, fade to black by 46.9 s.
+- **Transitions:** the 3D swing and camera roll are removed. Back to the sideways whip pan (translateX ±1600, rotateY ±26°, horizontal motion blur peaking on the beat).
+- **Look:** A (V-spread cards). Darker navy background (#0A1736, with #1F3375 as the centre glow). More teal: teal floor haze, teal thin beams, teal ends on the horizon line, a teal halo and top rim on the gold type, a brighter teal edge on the panels, and teal dust particles.

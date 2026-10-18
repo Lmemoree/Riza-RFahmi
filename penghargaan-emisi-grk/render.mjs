@@ -29,7 +29,7 @@ if (stills) {
   await browser.close(); process.exit();
 }
 
-const END = await page.evaluate(() => 47.971);
+const END = await page.evaluate(() => window.END);
 const total = Math.round(END * fps);
 const f0 = +arg('f0', 0), f1 = Math.min(+arg('f1', total), total);   // frame range [f0, f1)
 const n = f1 - f0;

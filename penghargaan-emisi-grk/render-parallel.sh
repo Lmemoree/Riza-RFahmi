@@ -2,7 +2,7 @@
 # Renders promo.html in N parallel frame chunks, then concatenates them (stream copy).
 set -euo pipefail
 cd "$(dirname "$0")"
-FPS=${FPS:-30}; N=${N:-4}; TOTAL=$(python3 -c "print(round(47.971*$FPS))")
+FPS=${FPS:-30}; N=${N:-4}; END=$(grep -oP "const END = \K[0-9.]+" promo.html); TOTAL=$(python3 -c "print(round($END*$FPS))")
 mkdir -p render/chunks; rm -f render/chunks/*
 per=$(( (TOTAL + N - 1) / N ))
 for i in $(seq 0 $((N-1))); do

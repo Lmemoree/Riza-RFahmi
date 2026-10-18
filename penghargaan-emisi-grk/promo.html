@@ -18,33 +18,34 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:1920px;height:1080px;background:#000;overflow:hidden}
 #stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;font-family:Montserrat,sans-serif;
-  background:#1F3375;transform-origin:0 0}
+  background:linear-gradient(180deg,#0B1A3E 0%,#0A1736 55%,#050C22 100%);transform-origin:0 0}
 #world{left:0;top:0;width:1920px;height:1080px;transform-origin:50% 60%}
 .abs{position:absolute}
 #glow{left:0;top:0;width:1920px;height:1080px;
-  background:radial-gradient(34% 30% at 50% 40%, rgba(92,132,232,.50) 0%, rgba(52,84,176,.28) 50%, transparent 100%)}
+  background:radial-gradient(34% 30% at 50% 40%, rgba(31,51,117,.95) 0%, rgba(22,40,98,.5) 50%, transparent 100%)}
 #stars{left:-150px;top:0}
 #dust{left:0;top:0}
-.ghoststrip{white-space:nowrap;font-weight:900;text-transform:uppercase;color:#bcd0ff;letter-spacing:-.02em}
-#ghostFar{top:30px;font-size:430px;opacity:.06;filter:blur(4px)}
-#ghostNear{top:470px;font-size:290px;opacity:.065;filter:blur(2.5px)}
+.ghoststrip{white-space:nowrap;font-weight:900;text-transform:uppercase;color:#a9c6ff;letter-spacing:-.02em}
+#ghostFar{top:30px;font-size:430px;opacity:.05;filter:blur(4px)}
+#ghostNear{top:470px;font-size:290px;opacity:.055;filter:blur(2.5px)}
 #floor{left:0;width:1920px;bottom:0;
-  background:linear-gradient(180deg,rgba(24,42,104,.75) 0%,rgba(14,26,68,.94) 32%,#08102c 100%)}
+  background:linear-gradient(180deg,rgba(12,28,70,.8) 0%,rgba(6,14,38,.95) 32%,#030817 100%)}
 #floor::after{content:"";position:absolute;left:10%;right:10%;top:0;height:150px;
-  background:radial-gradient(50% 100% at 50% 0%,rgba(60,220,190,.24),transparent 70%)}
+  background:radial-gradient(50% 100% at 50% 0%,rgba(50,225,195,.34),transparent 70%)}
+#tealHaze{left:0;width:1920px;height:420px;mix-blend-mode:screen;background:radial-gradient(46% 42% at 50% 62%,rgba(40,210,185,.26),rgba(30,150,170,.08) 60%,transparent 100%)}
 #hline{left:0;width:1920px;height:2px;
-  background:linear-gradient(90deg,transparent,rgba(255,226,160,.5) 28%,rgba(255,242,205,.95) 50%,rgba(255,226,160,.5) 72%,transparent);filter:blur(.6px)}
+  background:linear-gradient(90deg,transparent,rgba(70,230,200,.55) 18%,rgba(255,226,160,.6) 36%,rgba(255,242,205,.95) 50%,rgba(255,226,160,.6) 64%,rgba(70,230,200,.55) 82%,transparent);filter:blur(.6px)}
 .beam{top:-60px;height:1200px;width:3px;mix-blend-mode:screen;
   background:linear-gradient(180deg,transparent 0%,rgba(255,236,190,0) 8%,rgba(255,236,190,.85) 45%,rgba(255,236,190,.95) 58%,rgba(255,236,190,0) 100%);
-  box-shadow:0 0 18px 4px rgba(255,214,140,.32),0 0 80px 30px rgba(60,220,190,.13)}
-.beam.thin{width:1px;box-shadow:0 0 8px 2px rgba(255,214,140,.25)}
+  box-shadow:0 0 18px 4px rgba(255,214,140,.3),0 0 80px 30px rgba(50,220,190,.18)}
+.beam.thin{width:2px;background:linear-gradient(180deg,transparent 0%,rgba(140,255,230,0) 8%,rgba(140,255,230,.85) 45%,rgba(140,255,230,.95) 58%,rgba(140,255,230,0) 100%);box-shadow:0 0 12px 3px rgba(60,225,195,.45)}
 .beam.soft{width:120px;filter:blur(34px);box-shadow:none}
 #flare{width:1300px;height:7px;border-radius:50%;mix-blend-mode:screen;
-  background:radial-gradient(50% 50% at 50% 50%,rgba(255,246,222,.95),rgba(110,230,205,.28) 40%,transparent 70%);filter:blur(1.5px)}
+  background:radial-gradient(50% 50% at 50% 50%,rgba(255,246,222,.95),rgba(80,235,205,.42) 40%,transparent 70%);filter:blur(1.5px)}
 #flareCore{width:220px;height:70px;border-radius:50%;mix-blend-mode:screen;background:rgba(255,232,185,.65);filter:blur(20px)}
 #flash{left:0;top:0;width:1920px;height:1080px;mix-blend-mode:screen;
   background:radial-gradient(45% 40% at 50% 55%,rgba(255,236,196,.9),rgba(80,210,200,.25) 60%,transparent 100%)}
-#vignette{left:0;top:0;width:1920px;height:1080px;background:radial-gradient(95% 85% at 50% 45%,transparent 58%,rgba(4,8,26,.62) 100%)}
+#vignette{left:0;top:0;width:1920px;height:1080px;background:radial-gradient(92% 82% at 50% 45%,transparent 52%,rgba(2,5,18,.8) 100%)}
 #grain{left:0;top:0;width:1920px;height:1080px;opacity:.06;mix-blend-mode:overlay;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='3'/></filter><rect width='220' height='220' filter='url(%23n)'/></svg>")}
 #black{left:0;top:0;width:1920px;height:1080px;background:#000}
@@ -52,7 +53,7 @@ html,body{width:1920px;height:1080px;background:#000;overflow:hidden}
 /* scenes */
 .scene{position:absolute;left:0;top:0;width:1920px;height:1080px;display:none}
 .reflect{-webkit-box-reflect:below 4px linear-gradient(transparent 63%,rgba(0,0,0,.27))}
-.gl{white-space:nowrap;text-transform:uppercase;filter:drop-shadow(0 -1.5px 0 rgba(90,240,205,.8)) drop-shadow(0 2px 0 rgba(60,40,10,.6)) drop-shadow(0 8px 20px rgba(4,10,40,.75))}
+.gl{white-space:nowrap;text-transform:uppercase;filter:drop-shadow(0 -2px 0 rgba(100,245,215,.9)) drop-shadow(0 0 14px rgba(50,220,190,.2)) drop-shadow(0 2px 0 rgba(60,40,10,.6)) drop-shadow(0 8px 20px rgba(4,10,40,.75))}
 .ch{display:inline-block;color:transparent;-webkit-text-fill-color:transparent;
   background-image:var(--sweep),var(--goldgrad);background-repeat:no-repeat;
   -webkit-background-clip:text;background-clip:text;
@@ -65,8 +66,11 @@ html,body{width:1920px;height:1080px;background:#000;overflow:hidden}
 .tstack .p1{font-weight:800;letter-spacing:.34em;margin-bottom:10px;padding-left:.34em}
 .tstack .p2{font-weight:800;letter-spacing:.06em;line-height:1.05;margin-bottom:8px}
 .tstack .p3{font-weight:900;letter-spacing:-.01em;line-height:.93}
-#title .p1{font-size:40px} #title .p2{font-size:58px} #title .p3{font-size:150px}
-#outro .p1{font-size:34px} #outro .p2{font-size:50px} #outro .p3{font-size:128px}
+.tstack .gl{position:relative}
+.tstack .p3a{z-index:3} .tstack .p3b{z-index:1;letter-spacing:.05em;padding-left:.05em}
+.tstack .p1,.tstack .p2{z-index:0}
+#title .p1{font-size:46px;letter-spacing:.32em} #title .p2{font-size:30px;letter-spacing:.16em;margin-bottom:10px} #title .p3a{font-size:166px} #title .p3b{font-size:104px}
+#outro .p1{font-size:38px;letter-spacing:.32em} #outro .p2{font-size:26px;letter-spacing:.16em;margin-bottom:8px} #outro .p3a{font-size:140px} #outro .p3b{font-size:88px}
 #row{display:flex;justify-content:center;align-items:stretch;margin-top:36px;padding-bottom:16px}
 #row .nm{padding:0 22px;text-align:center}
 #row .nm + .nm{border-left:1px solid rgba(233,201,119,.55)}
@@ -83,7 +87,7 @@ html,body{width:1920px;height:1080px;background:#000;overflow:hidden}
 .card .shade{position:absolute;inset:0}
 .card.R .panel{left:1046px;transform-origin:0 100%}
 .card.L .panel{left:154px;transform-origin:100% 100%}
-.card.R .panel::after,.card.L .panel::after{content:"";position:absolute;top:0;bottom:0;width:3px;background:rgba(110,245,215,.95);box-shadow:0 0 14px 4px rgba(60,220,190,.55)}
+.card.R .panel::after,.card.L .panel::after{content:"";position:absolute;top:0;bottom:0;width:4px;background:rgba(120,250,220,.98);box-shadow:0 0 18px 6px rgba(50,225,195,.6)}
 .card.R .panel::after{left:0} .card.L .panel::after{right:0}
 .card.R .shade{background:linear-gradient(100deg,rgba(255,240,210,.16) 0%,transparent 28%,transparent 70%,rgba(5,4,18,.5) 100%)}
 .card.L .shade{background:linear-gradient(260deg,rgba(255,240,210,.16) 0%,transparent 28%,transparent 70%,rgba(5,4,18,.5) 100%)}
@@ -108,6 +112,7 @@ html,body{width:1920px;height:1080px;background:#000;overflow:hidden}
   <div id="ghostFar" class="abs ghoststrip"></div>
   <div id="ghostNear" class="abs ghoststrip"></div>
   <div id="floor" class="abs"></div>
+  <div id="tealHaze" class="abs"></div>
   <div id="beams"></div>
   <canvas id="dust" class="abs" width="1920" height="1080"></canvas>
   <div id="cam" class="abs" style="left:0;top:0;width:1920px;height:1080px">
@@ -127,9 +132,11 @@ html,body{width:1920px;height:1080px;background:#000;overflow:hidden}
 
 <script>
 // ---------- timeline (seconds; measured from the music, see director-notes.md) ----------
-const CUTS = [7.523, 13.572, 19.598, 25.646, 31.707, 37.732];   // title→N1 … N5→outro
-const END = 47.971;
-const OUTRO_HITS = { shimmer: 37.732 + (54.38 - 49.816), flash: 37.732 + (58.41 - 49.816) };
+const CUTS = [6.77, 12.96, 19.39, 25.31, 31.68, 38.66];   // title→N1 … N5→outro (percussive hits in music-nomination.mp3)
+const END = 46.9;
+window.END = END;
+const INTRO = { appear: .55, unfold: 2.22, shimmer: 4.35 };
+const OUTRO_HITS = { unfold: 40.0, shimmer: 42.4, flash: 45.3 };
 const NOMS = [
   { l1: ['UNIT PENYELENGGARA', 'BANDAR UDARA'], l2: ['LAGALIGO'], city: 'BUA', img: 'lagaligo.jpg', side: 'R' },
   { l1: ['BANDAR UDARA', 'INTERNASIONAL'], l2: ['SULTAN', 'HASANUDDIN'], city: 'MAKASSAR', img: 'sultan-hasanuddin.jpg', side: 'L' },
@@ -171,8 +178,8 @@ function buildTitle(root, withRow) {
   const L = {
     p1: goldLine(st, 'p1', 'PENGHARGAAN'),
     p2: goldLine(st, 'p2', 'PEMENUHAN INVENTARISASI DATA'),
-    p3a: goldLine(st, 'p3', 'EMISI GAS'),
-    p3b: goldLine(st, 'p3', 'RUMAH KACA'),
+    p3a: goldLine(st, 'p3 p3a', 'EMISI GAS'),
+    p3b: goldLine(st, 'p3 p3b', 'RUMAH KACA'),
   };
   let row = null;
   if (withRow) {
@@ -210,7 +217,7 @@ const BEAMS = {};
   const c = $('stars').getContext('2d');
   for (let i = 0; i < 900; i++) { const a = rnd() * rnd() * .9; c.fillStyle = `rgba(${200 + rnd() * 55 | 0},${200 + rnd() * 40 | 0},255,${a})`; const s = rnd() < .97 ? 1 : 2; c.fillRect(rnd() * 2220, rnd() * 820, s, s); }
 }
-const DUST = Array.from({ length: 110 }, () => ({ x: rnd() * 1920, y: rnd() * 1080, vx: 6 + rnd() * 22, vy: -4 + rnd() * 6, r: 0.8 + rnd() * 2.6, ph: rnd() * 6.28, z: .3 + rnd() * .9 }));
+const DUST = Array.from({ length: 120 }, (_, i) => ({ teal: i % 3 === 0, x: rnd() * 1920, y: rnd() * 1080, vx: 6 + rnd() * 22, vy: -4 + rnd() * 6, r: 0.8 + rnd() * 2.6, ph: rnd() * 6.28, z: .3 + rnd() * .9 }));
 const BOKEH = Array.from({ length: 10 }, () => ({ x: rnd() * 1920, y: rnd() * 640, r: 30 + rnd() * 80, vx: 2 + rnd() * 6, a: .05 + rnd() * .06 }));
 
 // lay out: per-letter gold alignment + auto-fit card names
@@ -266,19 +273,28 @@ function sweep(L, t, ts, dur) {
   L.line.style.setProperty('--sx', sx);
 }
 function sweepMany(arr, t, ts, dur) { arr.forEach(L => sweep(L, t, ts, dur)); }
+// reference-style opening: the key line appears first (dim silver) with the second line tucked behind it,
+// then the stack unfolds vertically and the light comes up from silver to gold
+function measureLockup(S) {
+  const key = S.L.p3a.line, kc = key.offsetTop + key.offsetHeight / 2;
+  for (const k of ['p1', 'p2', 'p3b']) { const l = S.L[k].line; S.L[k].off = l.offsetTop + l.offsetHeight / 2 - kc; }
+}
+function unfold(S, t, tAppear, tUnfold, tWarm) {
+  const a = eOutCubic(prog(t, tAppear, 1.1)), e = eOutExpo(prog(t, tUnfold, 1.6)), w = eInOutSine(prog(t, tWarm, 1.7));
+  const L = S.L;
+  L.p3a.line.style.opacity = a;
+  L.p3a.line.style.transform = `scale(${lerp(.93, 1, e)})`;
+  L.p3b.line.style.opacity = a * lerp(.6, 1, e);
+  L.p3b.line.style.transform = `translateY(${-(1 - e) * L.p3b.off * .8}px) scale(${lerp(.9, 1, e)})`;
+  for (const k of ['p1', 'p2']) {
+    L[k].line.style.opacity = clamp(e * 1.5);
+    L[k].line.style.transform = `translateY(${-(1 - e) * L[k].off}px) scale(${lerp(.82, 1, e)})`;
+  }
+  S.st.style.filter = w >= 1 ? 'none' : `grayscale(${1 - w}) brightness(${lerp(.6, 1, w)}) contrast(${lerp(1.15, 1, w)})`;
+}
 // whip transition around a cut: s∈[0,1], peak blur on the beat
 const WHIP = .3;
 function whipS(t, c) { return eInOutCubic(prog(t, c - WHIP, 2 * WHIP)); }
-// reference-style 3D card swing: the incoming set orbits in from the right and lands ~0.6 s after the beat,
-// the outgoing set spins away up-left and is gone 0.06 s after the beat
-const enterP = (t, c) => eOutExpo(prog(t, c - .2, .85));
-const exitP = (t, c) => eInCubic(prog(t, c - .32, .38));
-function pose3d(pin, pout, drift, scale) {
-  const x = (1 - pin) * 1050 - pout * 1350, y = -(1 - pin) * 30 - pout * 140, z = -(1 - pin) * 600 - pout * 250;
-  const rz = (1 - pin) * 10 - pout * 13, ry = -(1 - pin) * 62 + pout * 58 + drift;
-  return `perspective(1500px) translate3d(${x}px,${y}px,${z}px) rotateZ(${rz}deg) rotateY(${ry}deg) scale(${scale})`;
-}
-const poseOpacity = (pin, pout) => clamp(pin * 4) * (1 - clamp((pout - .55) / .45));
 
 let lastBlur = -1;
 function setBlur(px) {
@@ -294,12 +310,13 @@ function renderFrame(t) {
   let seg = -1; for (let i = 0; i < CUTS.length; i++) if (t >= CUTS[i]) seg = i;
   // nearest cut for whip
   let blur = 0, bgShift = 0;
-  CUTS.forEach((c, i) => { const s = whipS(t, c); bgShift += s; if (s > 0 && s < 1 && i < 5) blur = Math.max(blur, Math.sin(Math.PI * s) * 40); });
+  CUTS.forEach((c, i) => { const s = whipS(t, c); bgShift += s; if (s > 0 && s < 1) blur = Math.max(blur, Math.sin(Math.PI * s) * (i < 5 ? 40 : 26)); });
 
   // ---- background ----
   const hz = t < CUTS[0] - WHIP ? .68 : t < CUTS[0] + WHIP ? lerp(.68, .72, whipS(t, CUTS[0])) : .72;
   const hzPx = 1080 * hz;
   $('floor').style.top = hzPx + 'px';
+  $('tealHaze').style.top = (hzPx - 300) + 'px';
   $('hline').style.top = (hzPx - 1) + 'px';
   const bx = -bgShift * 260 - t * 6;
   $('ghostFar').style.transform = `translateX(${-300 + bx * .35 - t * 10}px)`;
@@ -317,15 +334,15 @@ function renderFrame(t) {
     const x = ((d.x + d.vx * t + bx * d.z * .6) % 1960 + 1960) % 1960 - 20;
     const y = d.y + d.vy * t + Math.sin(t * .7 + d.ph) * 8;
     const a = (.35 + .35 * Math.sin(t * 1.3 + d.ph)) * d.z;
-    const g = dc.createRadialGradient(x, y, 0, x, y, d.r * 3); g.addColorStop(0, `rgba(255,232,190,${a})`); g.addColorStop(1, 'rgba(255,232,190,0)');
+    const g = dc.createRadialGradient(x, y, 0, x, y, d.r * 3); const col = d.teal ? '110,240,215' : '255,232,190'; g.addColorStop(0, `rgba(${col},${a})`); g.addColorStop(1, `rgba(${col},0)`);
     dc.fillStyle = g; dc.beginPath(); dc.arc(x, y, d.r * 3, 0, 6.3); dc.fill();
   }
   // beams: title/outro pair vs card centre beam
   const flick = .84 + .09 * Math.sin(t * 7.1) + .07 * Math.sin(t * 13.3 + 1.1);
-  const pairOn = seg === -1 ? clamp(1 - whipS(t, CUTS[0])) : seg === 5 ? eOutCubic(prog(t, CUTS[5], 1.2)) : 0;
+  const pairOn = seg === -1 ? clamp(1 - whipS(t, CUTS[0])) : seg === 5 ? .3 * eOutCubic(prog(t, CUTS[5], .6)) + .7 * eOutCubic(prog(t, OUTRO_HITS.unfold - .2, 1.2)) : 0;
   const cenOn = seg >= 0 && seg < 5 ? 1 - Math.max(whipS(t, CUTS[0]) < 1 ? 1 - whipS(t, CUTS[0]) : 0, whipS(t, CUTS[5])) : (seg === -1 ? whipS(t, CUTS[0]) : 1 - whipS(t, CUTS[5]));
   const flashBoost = 1 + 1.4 * Math.exp(-Math.pow((t - OUTRO_HITS.flash) / .25, 2));
-  const titleIn = eOutCubic(prog(t, .09, 1.6));
+  const titleIn = .25 * eOutCubic(prog(t, INTRO.appear, 1.2)) + .75 * eOutCubic(prog(t, INTRO.unfold - .2, 1.5));
   for (const k of ['L', 'L1', 'L2', 'R', 'R1', 'R2']) BEAMS[k].style.opacity = pairOn * flick * (seg === -1 ? titleIn : 1) * (k.length === 1 ? .35 : 1) * flashBoost;
   const spread = seg === 5 ? 230 * eOutExpo(prog(t, CUTS[5], 1.6)) : 0;
   for (const k of ['L', 'L1', 'L2']) BEAMS[k].style.transform = `translateX(${-spread}px)`;
@@ -336,16 +353,13 @@ function renderFrame(t) {
   $('flare').style.cssText = `left:${960 - 650 + Math.sin(t * .4) * 60}px;top:${hzPx - 3}px;opacity:${fl * (seg === -1 ? titleIn : 1)}`;
   $('flareCore').style.cssText = `left:${960 - 110 + Math.sin(t * .4) * 60}px;top:${hzPx - 35}px;opacity:${fl * .8 * (seg === -1 ? titleIn : 1)}`;
   // outro impact flash
-  const fi = Math.exp(-Math.pow(Math.max(0, t - CUTS[5]) / .35, 1.2)) * (t >= CUTS[5] - .02 ? 1 : 0) + .6 * Math.exp(-Math.pow((t - OUTRO_HITS.flash) / .2, 2));
+  const fi = .7 * Math.exp(-Math.pow(Math.max(0, t - CUTS[5]) / .35, 1.2)) * (t >= CUTS[5] - .02 ? 1 : 0) + .8 * Math.exp(-Math.pow((t - OUTRO_HITS.unfold) / .22, 2)) + .5 * Math.exp(-Math.pow((t - OUTRO_HITS.flash) / .2, 2))
+    + .45 * Math.exp(-Math.pow((t - INTRO.unfold) / .25, 2));
   $('flash').style.opacity = clamp(fi * .55);
   // black in/out
-  const blackIn = 1 - eOutCubic(prog(t, .09, 1.1));
+  const blackIn = 1 - eOutCubic(prog(t, .3, 1.3));
   const blackOut = eInOutSine(prog(t, END - 1.35, 1.3));
   $('black').style.opacity = Math.max(blackIn, blackOut);
-
-  // ---- camera roll (whole set incl. floor) on every card change ----
-  let roll = 0; CUTS.slice(0, 5).forEach(c => { roll += Math.exp(-Math.pow((t - c - .03) / .3, 2)); });
-  $('world').style.transform = roll > .002 ? `rotate(${-4.5 * roll}deg) scale(${1 + .075 * roll})` : 'none';
 
   // ---- camera blur ----
   setBlur(blur);
@@ -354,18 +368,13 @@ function renderFrame(t) {
   const tv = t < CUTS[0] + WHIP;
   $('title').style.display = tv ? 'block' : 'none';
   if (tv) {
-    const po = exitP(t, CUTS[0]);
-    const push = lerp(1, 1.06, eInOutSine(prog(t, 0, CUTS[0])));
-    $('title').style.transformOrigin = '50% 72%';
-    $('title').style.transform = pose3d(1, po, 0, push);
-    $('title').style.opacity = poseOpacity(1, po);
+    const s = whipS(t, CUTS[0]);
+    const push = lerp(1, 1.07, eInOutSine(prog(t, 0, CUTS[0])));
+    $('title').style.transform = `perspective(1600px) translateX(${-s * 1600}px) rotateY(${s * 26}deg) scale(${push})`;
     TITLE.st.style.bottom = (1080 - hzPx) + 'px';
-    letters(TITLE.L.p1, t, .56, .035, 'depth');
-    letters(TITLE.L.p2, t, 1.51, .02, 'depth');
-    letters(TITLE.L.p3a, t, 2.51, .06, 'depth');
-    letters(TITLE.L.p3b, t, 3.02, .06, 'depth');
-    sweepMany([TITLE.L.p1, TITLE.L.p2], t, 4.02, 1.1);
-    sweepMany([TITLE.L.p3a, TITLE.L.p3b], t, 4.12, 1.3);
+    unfold(TITLE, t, INTRO.appear, INTRO.unfold, INTRO.unfold - .1);
+    sweepMany([TITLE.L.p3a, TITLE.L.p3b], t, INTRO.shimmer, 1.3);
+    sweepMany([TITLE.L.p1, TITLE.L.p2], t, INTRO.shimmer + .55, 1.1);
   }
 
   // ---- CARDS ----
@@ -374,12 +383,13 @@ function renderFrame(t) {
     c.root.style.display = vis ? 'block' : 'none';
     if (!vis) return;
     const u = t - c.start, D = c.end - c.start;
-    const pin = enterP(t, c.start), pout = exitP(t, c.end);
+    const sIn = whipS(t, c.start), sOut = whipS(t, c.end);
+    const settle = eOutExpo(prog(u, WHIP, 1.4));
+    const x = (1 - sIn) * 1600 + (1 - settle) * 90 - sOut * 1600;
+    const ry = -(1 - sIn) * 26 + sOut * 26;
     const dir = c.d.side === 'R' ? -1 : 1;
-    const orbit = lerp(4, -4, eInOutSine(prog(u, 0, D))) * -dir;      // slow camera orbit while the card holds
     const dolly = lerp(1, 1.035, eInOutSine(prog(u, 0, D)));
-    c.root.style.transform = pose3d(pin, pout, orbit, dolly);
-    c.root.style.opacity = poseOpacity(pin, pout);
+    c.root.style.transform = `perspective(1600px) translateX(${x}px) rotateY(${ry}deg) scale(${dolly})`;
     // V-spread: panel and text open from a shared corner; the V closes slightly as the card settles
     const vAng = lerp(40, 28, eOutExpo(prog(u, -.1, 1.5)));
     c.panel.style.transform = `rotateY(${dir * vAng}deg)`;
@@ -399,20 +409,17 @@ function renderFrame(t) {
   if (ov) {
     const w = t - CUTS[5];
     const pull = eOutExpo(prog(w, -WHIP, 1.5));
-    const push = lerp(1, 1.05, eInOutSine(prog(w, 1.2, 8.5)));
+    const push = lerp(1, 1.05, eInOutSine(prog(w, 1.2, END - CUTS[5] - 1.2)));
     $('outro').style.transform = `perspective(1600px) translateX(${(1 - pull) * 700}px) rotateY(${-(1 - pull) * 18}deg) scale(${lerp(1.22, 1, pull) * push})`;
     $('outro').style.opacity = clamp(prog(w, -WHIP, .35));
     OUTRO.st.style.bottom = (1080 - hzPx) + 'px';
-    letters(OUTRO.L.p1, t, CUTS[5] - .05, .02, 'depth');
-    letters(OUTRO.L.p2, t, CUTS[5] + .05, .012, 'depth');
-    letters(OUTRO.L.p3a, t, CUTS[5] + .1, .035, 'depth');
-    letters(OUTRO.L.p3b, t, CUTS[5] + .3, .035, 'depth');
+    unfold(OUTRO, t, CUTS[5] - .1, OUTRO_HITS.unfold, OUTRO_HITS.unfold - .15);
     OUTRO.row.items.forEach((it, j) => {
-      const p = eOutCubic(prog(w, 1.6 + j * .22, .7));
+      const p = eOutCubic(prog(t, OUTRO_HITS.unfold + 1.0 + j * .2, .7));
       it.n.style.opacity = p; it.n.style.transform = `translateY(${(1 - p) * 16}px)`;
       it.n.style.filter = p >= 1 ? 'none' : `blur(${(1 - p) * 5}px)`;
     });
-    sweepMany([OUTRO.L.p1, OUTRO.L.p2], t, CUTS[5] + 1.0, 1.0);
+    sweepMany([OUTRO.L.p1, OUTRO.L.p2], t, OUTRO_HITS.shimmer + .5, 1.0);
     sweepMany([OUTRO.L.p3a, OUTRO.L.p3b], t, OUTRO_HITS.shimmer - .15, 1.4);
     sweepMany(OUTRO.row.items.flatMap(it => [it.la, it.lc]), t, OUTRO_HITS.shimmer + .5, 1.2);
   }
@@ -424,7 +431,7 @@ window.__ready = (async () => {
   await Promise.all(NOMS.map(d => { const im = new Image(); im.src = 'assets/img/' + d.img; return im.decode(); }));
   // layout needs scenes displayed
   document.querySelectorAll('.scene').forEach(s => s.style.display = 'block');
-  fitNames(); alignGold();
+  fitNames(); alignGold(); measureLockup(TITLE); measureLockup(OUTRO);
   document.querySelectorAll('.scene').forEach(s => s.style.display = 'none');
   window.renderFrame = renderFrame;
   return true;
