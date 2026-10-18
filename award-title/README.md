@@ -3,6 +3,7 @@
 Ten-second 4K title card for *Penghargaan Kepatuhan Inventarisasi Data Emisi Gas Rumah Kaca, Kantor Otoritas Bandar Udara Wilayah V Makassar*.
 
 - `award_title_4k.mp4`: 3840×2160, 30 fps, H.264 High (BT.709), with 48 kHz stereo AAC audio.
+- `award_title_1080p_preview.mp4`: a 1080p copy, light enough for phone or chat previews.
 - `render.py`: the procedural renderer (numpy + Pillow + ffmpeg). Text is set in real Montserrat, so the spelling is exact.
 - `fonts/`: Montserrat from Google Fonts, SIL Open Font License 1.1.
 
