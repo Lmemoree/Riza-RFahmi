@@ -63,6 +63,11 @@ canvas.conf{position:absolute;inset:0}
 .wbtn{top:25px;width:28px;height:28px}
 #bmin{right:92px} #bmax{right:54px} #bcls{right:16px}
 .wbtn i{position:absolute;background:linear-gradient(180deg,#d9d8e3,#9f9db0);border-radius:3px;box-shadow:0 2px 0 #7d7b8f}
+#shineClip{inset:0;border-radius:38px;overflow:hidden;pointer-events:none}
+#shine{top:-40%;left:0;width:140px;height:180%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);mix-blend-mode:screen;filter:blur(4px)}
+.hl .sw{background:linear-gradient(105deg,transparent 0 44%,rgba(255,255,255,.95) 50%,transparent 56% 100%) no-repeat;background-size:900px 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
+#scriptSw{left:120px;width:1080px;top:140px;text-align:center;font-family:Corinthia;font-weight:700;font-size:128px;line-height:1;white-space:nowrap;padding:0 40px;
+  background:linear-gradient(105deg,transparent 0 44%,rgba(255,252,235,.95) 50%,transparent 56% 100%) no-repeat;background-size:700px 100%;-webkit-background-clip:text;background-clip:text;color:transparent}
 /* rosette */
 #rosette{left:-70px;top:-74px;width:220px;height:290px;transform:translateZ(40px)}
 
@@ -99,7 +104,7 @@ body.vB #ttl,body.vB #uname{color:#1F3375}
 body.vB #badgeNum{color:#1F3375;text-shadow:0 1px 0 #182a62,0 2px 0 #15255a,0 3px 0 #122152,0 4px 0 #0f1c49,0 10px 14px rgba(5,10,40,.4)}
 body.vB .hl .ex{color:#cfd9f5;-webkit-text-stroke-color:#cfd9f5;text-shadow:0 1px 0 #c4cff0,0 2px 0 #b9c6ec,0 3px 0 #aebde8,0 4px 0 #a3b3e3,0 5px 0 #98aade,0 6px 0 #8da0d8,0 7px 0 #8297d2,0 8px 0 #778dcb,0 22px 28px rgba(5,10,40,.5)}
 body.vC .hl{font-size:132px;text-align:left;left:50px;top:40px;line-height:.9;width:1000px;white-space:normal}
-body.vC #script{text-align:left;left:330px;top:218px;font-size:112px;width:auto}
+body.vC #script,body.vC #scriptSw{text-align:left;left:330px;top:218px;font-size:112px;width:auto}
 body.vC #rig{top:690px;left:58%}
 </style>
 </head>
@@ -131,6 +136,7 @@ body.vC #rig{top:690px;left:58%}
             <div id="layerB" class="layer"><div id="photo" class="abs"></div></div>
           </div>
           <div id="bottombar" class="abs"></div>
+          <div id="shineClip" class="abs"><div id="shine" class="abs"></div></div>
           <!-- LAYER C pieces that sit on the frame -->
           <div id="ttl" class="abs">Bandar Udara</div>
           <div id="uname" class="abs"></div>
@@ -143,15 +149,19 @@ body.vC #rig{top:690px;left:58%}
   </div>
   <!-- LAYER C (headline) -->
   <div id="layerC" class="layer">
-    <div class="abs hl" id="hl"><span class="ex">AWARD WINNER</span><span class="st">AWARD WINNER</span><span class="fi">AWARD WINNER</span><span class="gl">AWARD WINNER</span></div>
+    <div class="abs hl" id="hl"><span class="ex">AWARD WINNER</span><span class="st">AWARD WINNER</span><span class="fi">AWARD WINNER</span><span class="gl">AWARD WINNER</span><span class="sw">AWARD WINNER</span></div>
     <div id="script" class="abs">announcement</div>
+    <div id="scriptSw" class="abs">announcement</div>
   </div>
   <!-- foreground confetti (Layer A, front depth) -->
   <canvas id="confFront" class="conf" width="1080" height="1080"></canvas>
 </div>
 <script>
 const Q = new URLSearchParams(location.search);
-const V = Q.get('v') || 'A';
+const V = Q.get('v') || 'B';
+const T = 8;                 // loop length (s): every motion below is periodic in T so frame T == frame 0
+const TAU = Math.PI * 2;
+const ph = t => TAU * t / T; // loop phase
 document.body.classList.add('v' + V);
 const WINNERS = [
   { n: 1, name: 'Sultan Hasanuddin', img: 'sultan-hasanuddin.jpg' },
@@ -208,15 +218,18 @@ addDecor('<div class="sphere" style="width:38px;height:38px"></div>', 190, 860, 
 addDecor('<div class="sphere" style="width:64px;height:64px;filter:blur(2px)"></div>', -14, 650, 1.2);
 
 // ---- confetti: gold foil ribbons drawn as twisting strips on 3 canvases (parallax depths) ----
-function makeConf(n, depth, size, blur) {
-  return Array.from({ length: n }, () => ({ x: rnd() * 1180 - 50, y: rnd() * 1180 - 50, len: size * (0.7 + rnd() * .7), w: size * (.22 + rnd() * .1),
-    rot: rnd() * 6.28, vr: (rnd() - .5) * 1.4, tw: rnd() * 6.28, vt: 1.5 + rnd() * 2.5, curl: (rnd() - .5) * 1.6,
-    vy: (14 + rnd() * 22) * depth, vx: (rnd() - .5) * 18, depth, blur }));
+// every rate is an integer number of cycles per loop, so the confetti field is identical at t=0 and t=T
+const WRAP = 1240;
+function makeConf(n, falls, size, blur) {
+  return Array.from({ length: n }, () => ({ x: rnd() * 1180 - 50, y: rnd() * WRAP, len: size * (0.7 + rnd() * .7), w: size * (.22 + rnd() * .1),
+    rot: rnd() * TAU, spins: (rnd() < .5 ? -1 : 1) * (rnd() < .6 ? 1 : 0), tw: rnd() * TAU, flips: 2 + Math.floor(rnd() * 4), curl: (rnd() - .5) * 1.6,
+    falls, sway: 6 + rnd() * 16, swayPh: rnd() * TAU, blur }));
 }
-const CONF = { back: makeConf(26, .5, 26, 1.5), mid: makeConf(16, 1, 44, 0), front: makeConf(7, 1.8, 92, 5) };
+const CONF = { back: makeConf(26, 1, 26, 1.5), mid: makeConf(16, 1, 44, 0), front: makeConf(7, 2, 92, 5) };
 function drawRibbon(c, r, t) {
-  const y = ((r.y + r.vy * t) % 1240 + 1240) % 1240 - 80, x = r.x + r.vx * t + Math.sin(t * .8 + r.tw) * 14;
-  const rot = r.rot + r.vr * t, tw = r.tw + r.vt * t;
+  const p = ph(t);
+  const y = ((r.y + r.falls * WRAP * t / T) % WRAP + WRAP) % WRAP - 80, x = r.x + Math.sin(p + r.swayPh) * r.sway;
+  const rot = r.rot + r.spins * p, tw = r.tw + r.flips * p;
   c.save(); c.translate(x, y); c.rotate(rot);
   const seg = 14; const L = r.len;
   // strip: centreline curls; half-width = w*cos(twist) gives the foil flip
@@ -241,19 +254,29 @@ function drawConf(id, list, t) {
 // ---- frame pose (Layer A rig) ----
 const POSE = { A: { rx: 8, ry: -12, rz: -3, s: 1 }, B: { rx: 8, ry: -12, rz: -3, s: 1 }, C: { rx: 10, ry: -24, rz: -4, s: 1.05 } }[V];
 
+const sweep = (t, a, d) => { const u = (t - a) / d; return u <= 0 || u >= 1 ? null : u; };
 function renderFrame(t) {
-  const fy = Math.sin(t * 1.3) * 12, fr = Math.sin(t * .9) * 2;
-  $('rig').style.transform = `translateY(${fy}px) rotateX(${POSE.rx + Math.sin(t * .7) * 2}deg) rotateY(${POSE.ry + fr}deg) rotateZ(${POSE.rz}deg) scale(${POSE.s})`;
+  t = ((t % T) + T) % T;
+  const p = ph(t);
+  const fy = Math.sin(p * 2) * 12, fr = Math.sin(p) * 2.4, fx = Math.sin(p + 1.2) * 1.6;   // float: 2 bobs + 1 sway per loop
+  $('rig').style.transform = `translateY(${fy}px) rotateX(${POSE.rx + fx}deg) rotateY(${POSE.ry + fr}deg) rotateZ(${POSE.rz + Math.sin(p * 2 + .6) * .6}deg) scale(${POSE.s})`;
   $('shadow').style.transform = `scale(${1 - fy / 120})`; $('shadow').style.opacity = .8 - fy / 60;
-  $('photo').style.transform = `translate(${-fr * 3}px,${-fy * .25}px) scale(1.06)`;   // inner parallax
-  DECOR.forEach(d => d.el.style.transform = `translateY(${Math.sin(t * 1.1 + d.ph) * 8 * d.depth}px)`);
-  $('rays').style.transform = `rotate(${t * 2}deg)`;
+  $('photo').style.transform = `translate(${-fr * 4}px,${-fy * .3}px) scale(1.07)`;   // photo drifts against the frame (inner parallax)
+  DECOR.forEach(d => d.el.style.transform = `translateY(${Math.sin(p + d.ph) * 9 * d.depth}px)`);
+  $('rays').style.transform = `rotate(${t / T * 18}deg)`;                   // conic pattern repeats every 18°
+  // once-per-loop accents
+  const sg = sweep(t, 1.0, 1.1);   $('shine').style.transform = `translateX(${sg == null ? -900 : -500 + sg * 1300}px) rotate(18deg)`;
+  const sh = sweep(t, 2.4, 1.4);   document.querySelectorAll('.hl .sw').forEach(e => e.style.backgroundPosition = `${sh == null ? -2000 : -900 + sh * 2100}px 0`);
+  const ss = sweep(t, 3.1, 1.2);   $('scriptSw').style.backgroundPosition = `${ss == null ? -2000 : -700 + ss * 1700}px 0`;
+  const pulse = 1 + .05 * Math.exp(-Math.pow((t - 5.2) / .18, 2));
+  $('rosette').style.transform = `translateZ(40px) rotate(${Math.sin(p * 2) * 2}deg) scale(${pulse})`;
+  $('badgeNum').style.transform = `translateZ(46px) rotate(${Math.sin(p * 2) * 2}deg) scale(${pulse})`;
   drawConf('confBack', CONF.back, t); drawConf('confMid', CONF.mid, t); drawConf('confFront', CONF.front, t);
 }
 window.__ready = (async () => {
   await document.fonts.ready;
   await new Promise(r => { const im = new Image(); im.onload = r; im.onerror = r; im.src = 'assets/img/' + W.img; });
-  window.renderFrame = renderFrame; renderFrame(+(Q.get('t') || 1.2)); return true;
+  window.renderFrame = renderFrame; window.LOOP_T = T; renderFrame(+(Q.get('t') || 1.2)); return true;
 })();
 </script>
 </body>
