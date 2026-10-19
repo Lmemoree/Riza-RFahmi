@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Award Winner Flyer</title>
+<!--
+  1080×1080 animated winner flyer. Three independent layers (per the brief):
+    Layer A  #layerA  background, light rays, decor, confetti (3 parallax depths), 3D window frame + rosette (no text)
+    Layer B  #layerB  the winner photo inside the window screen
+    Layer C  #layerC  all typography (headline, script, title bar, bottom bar name, badge number)
+  Variants: ?v=A (brief-faithful) · ?v=B (series-matched navy/teal/gold) · ?v=C (bold tilt)   &w=1|2|3 winner
+  renderFrame(t) is a pure function of time (seeded randomness) so it renders deterministically.
+  Assumptions: background = navy #1F3375 (the Layer A text said magenta — treated as leftover from the template);
+  bottom bar = airport name (the per-winner "username"); badge = winner number.
+-->
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<style>
+:root{
+  --bg0:#0B1736; --bg1:#1F3375; --bg2:#2F57D8; --glow:rgba(40,210,190,.45);
+  --p0:#9B4DFF; --p1:#7B2FF7; --p2:#5A16C9; --lilac:#C9A8FF; --lilac2:#B58CFF;
+  --g0:#F5D58A; --g1:#C9A24A;
+  --winW:560px; --winH:680px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1080px;overflow:hidden;background:#000}
+#stage{position:absolute;inset:0;width:1080px;height:1080px;overflow:hidden;font-family:Fredoka,sans-serif}
+.abs{position:absolute}
+.layer{position:absolute;inset:0}
+
+/* ---------------- LAYER A ---------------- */
+#bg{inset:0;background:
+  radial-gradient(60% 55% at 12% 88%, var(--glow), transparent 70%),
+  radial-gradient(70% 60% at 88% 8%, rgba(70,120,255,.65), transparent 70%),
+  linear-gradient(135deg, var(--bg1) 0%, #1A2C69 45%, var(--bg2) 100%)}
+#rays{left:-540px;top:-540px;width:2160px;height:2160px;opacity:.22;mix-blend-mode:screen;
+  background:repeating-conic-gradient(from 0deg at 50% 50%, rgba(255,255,255,.0) 0deg 7deg, rgba(255,255,255,.55) 9deg, rgba(255,255,255,0) 11deg 18deg);
+  -webkit-mask:radial-gradient(closest-side, #000 20%, transparent 85%);filter:blur(6px)}
+.dots{width:150px;height:96px;background-image:radial-gradient(circle,rgba(255,255,255,.75) 1.6px,transparent 2px);background-size:16px 16px}
+.stripes{width:220px;height:220px;border-radius:50%;background:repeating-linear-gradient(135deg,rgba(255,255,255,.28) 0 3px,transparent 3px 14px);
+  -webkit-mask:radial-gradient(circle,#000 60%,transparent 72%)}
+.tri{width:0;height:0}
+.tri svg,.plus svg{display:block}
+.sphere{border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff 0 8%,#ffd6ec 22%,#f39ad0 55%,#b0569a 100%);
+  box-shadow:0 10px 24px rgba(0,0,0,.25)}
+canvas.conf{position:absolute;inset:0}
+#shadow{left:270px;top:1000px;width:560px;height:60px;border-radius:50%;background:radial-gradient(closest-side,rgba(5,10,40,.55),transparent);filter:blur(6px)}
+
+/* the 3D window */
+#rig{left:50%;top:650px;width:var(--winW);height:var(--winH);margin-left:calc(var(--winW)/-2);margin-top:calc(var(--winH)/-2);
+  transform-style:preserve-3d}
+.slab{position:absolute;inset:0;border-radius:38px;background:linear-gradient(160deg,#e9e8f2,#b9b6cc)}
+#win{position:absolute;inset:0;border-radius:38px;transform-style:preserve-3d;
+  background:linear-gradient(155deg,#ffffff 0%,#f6f5fb 40%,#e4e2ee 100%);
+  box-shadow:inset 0 2px 0 #fff,inset 0 -6px 14px rgba(120,110,160,.25),inset 6px 0 10px rgba(255,255,255,.8)}
+#titlebar{left:30px;right:30px;top:26px;height:80px;border-radius:24px;background:linear-gradient(180deg,#fdfcff,#ecebf4);
+  box-shadow:inset 0 -3px 6px rgba(120,110,160,.18),0 2px 0 #fff}
+#screen{left:38px;right:38px;top:124px;bottom:128px;border-radius:22px;overflow:hidden;
+  background:radial-gradient(circle at 50% 46%, var(--lilac) 0%, var(--lilac2) 70%, #9d6cf6 100%);
+  box-shadow:inset 0 6px 16px rgba(60,20,120,.45),inset 0 -2px 0 rgba(255,255,255,.6)}
+#screen::before{content:"";position:absolute;inset:-20%;background:repeating-radial-gradient(circle at 50% 46%,transparent 0 34px,rgba(255,255,255,.22) 35px 36.5px,transparent 37.5px 70px)}
+#bottombar{left:30px;right:30px;bottom:26px;height:84px;border-radius:24px;background:linear-gradient(180deg,#f3f2f9,#ffffff);
+  box-shadow:inset 0 3px 8px rgba(120,110,160,.22)}
+.wbtn{top:25px;width:28px;height:28px}
+#bmin{right:92px} #bmax{right:54px} #bcls{right:16px}
+.wbtn i{position:absolute;background:linear-gradient(180deg,#d9d8e3,#9f9db0);border-radius:3px;box-shadow:0 2px 0 #7d7b8f}
+/* rosette */
+#rosette{left:-70px;top:-74px;width:220px;height:290px;transform:translateZ(40px)}
+
+/* ---------------- LAYER B ---------------- */
+#photo{left:30px;right:30px;top:26px;bottom:26px;border-radius:18px;background:center/cover no-repeat;
+  box-shadow:0 0 0 6px rgba(255,255,255,.85),0 14px 30px rgba(40,10,90,.45)}
+#photo::after{content:"";position:absolute;inset:0;border-radius:18px;background:linear-gradient(160deg,rgba(255,255,255,.28),transparent 35%,transparent 70%,rgba(60,20,140,.25))}
+
+/* ---------------- LAYER C ---------------- */
+.hl{left:0;width:1080px;top:62px;text-align:center;font-family:Montserrat;font-style:italic;font-weight:900;font-size:100px;letter-spacing:-.015em;line-height:1;white-space:nowrap}
+.hl span{position:absolute;left:0;right:0}
+.hl .ex{color:#e7defa;-webkit-text-stroke:24px #e7defa;text-shadow:
+  0 1px 0 #d8ccf4,0 2px 0 #d2c4f2,0 3px 0 #cbbbef,0 4px 0 #c4b2ec,0 5px 0 #bca9e8,0 6px 0 #b5a0e4,0 7px 0 #ad97e0,0 8px 0 #a58edb,0 9px 0 #9c84d5,0 10px 0 #937acf,
+  0 22px 28px rgba(10,10,50,.45)}
+.hl .st{color:#fff;-webkit-text-stroke:24px #fff}
+.hl .fi{background:linear-gradient(180deg,var(--p0),var(--p1) 55%,var(--p2));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 -2px 0 rgba(255,255,255,.55))}
+.hl .gl{background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0) 45%);-webkit-background-clip:text;background-clip:text;color:transparent}
+#script{left:120px;width:1080px;top:140px;text-align:center;font-family:Corinthia;font-weight:700;font-size:128px;line-height:1;white-space:nowrap;
+  background:linear-gradient(180deg,#FFF0C4 0%,var(--g0) 35%,var(--g1) 75%,#E8C774 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 3px 2px rgba(60,30,0,.45)) drop-shadow(0 0 1px rgba(255,240,200,.6));padding:0 40px}
+#ttl{left:160px;top:44px;font-family:Fredoka;font-weight:700;font-size:35px;color:var(--p1);letter-spacing:.005em;
+  text-shadow:0 2px 0 rgba(255,255,255,.9),0 -1px 0 rgba(60,10,140,.35)}
+#uname{left:0;right:0;bottom:46px;text-align:center;font-family:Fredoka;font-weight:700;font-size:40px;color:var(--p1);white-space:nowrap;
+  text-shadow:0 2px 0 rgba(255,255,255,.95),0 -1px 0 rgba(60,10,140,.35)}
+#badgeNum{left:-70px;top:-74px;width:220px;height:220px;transform:translateZ(46px);display:flex;align-items:center;justify-content:center;
+  font-family:Montserrat;font-style:italic;font-weight:900;font-size:104px;color:var(--p1);
+  text-shadow:0 1px 0 #6a22e0,0 2px 0 #6420d6,0 3px 0 #5d1dcc,0 4px 0 #561ac1,0 5px 0 #4f17b6,0 10px 14px rgba(40,10,90,.4);padding-right:6px}
+
+/* ---------------- variants ---------------- */
+body.vB{--bg1:#132457;--bg2:#1F3375;--glow:rgba(40,215,190,.55);--p0:#FFE7A6;--p1:#E2B85A;--p2:#A97E26;--lilac:#2B4A9E;--lilac2:#1C3474}
+body.vB #screen::before{background:repeating-radial-gradient(circle at 50% 46%,transparent 0 34px,rgba(90,240,210,.25) 35px 36.5px,transparent 37.5px 70px)}
+body.vB #ttl,body.vB #uname{color:#1F3375}
+body.vB #badgeNum{color:#1F3375;text-shadow:0 1px 0 #182a62,0 2px 0 #15255a,0 3px 0 #122152,0 4px 0 #0f1c49,0 10px 14px rgba(5,10,40,.4)}
+body.vB .hl .ex{color:#cfd9f5;-webkit-text-stroke-color:#cfd9f5;text-shadow:0 1px 0 #c4cff0,0 2px 0 #b9c6ec,0 3px 0 #aebde8,0 4px 0 #a3b3e3,0 5px 0 #98aade,0 6px 0 #8da0d8,0 7px 0 #8297d2,0 8px 0 #778dcb,0 22px 28px rgba(5,10,40,.5)}
+body.vC .hl{font-size:132px;text-align:left;left:50px;top:40px;line-height:.9;width:1000px;white-space:normal}
+body.vC #script{text-align:left;left:330px;top:218px;font-size:112px;width:auto}
+body.vC #rig{top:690px;left:58%}
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- LAYER A -->
+  <div id="layerA" class="layer">
+    <div id="bg" class="abs"></div>
+    <div id="rays" class="abs"></div>
+    <div class="abs stripes" style="left:-90px;top:120px"></div>
+    <div class="abs stripes" style="left:930px;top:850px;width:200px;height:200px"></div>
+    <div class="abs dots" style="left:880px;top:300px"></div>
+    <div class="abs dots" style="left:60px;top:720px"></div>
+    <div class="abs dots" style="left:720px;top:900px;width:110px;height:64px"></div>
+    <div id="decor"></div>
+    <canvas id="confBack" class="conf" width="1080" height="1080"></canvas>
+    <div id="shadow" class="abs"></div>
+    <div id="rigWrap" class="abs" style="inset:0;perspective:1800px;perspective-origin:50% 45%">
+      <div id="rig" class="abs">
+        <div id="slabs"></div>
+        <div id="win">
+          <div id="titlebar" class="abs">
+            <div id="bmin" class="abs wbtn"><i style="left:3px;right:3px;top:13px;height:5px"></i></div>
+            <div id="bmax" class="abs wbtn"><i style="left:3px;right:3px;top:3px;bottom:3px;background:none;border:5px solid #b2b0c2;box-shadow:0 2px 0 #7d7b8f"></i></div>
+            <div id="bcls" class="abs wbtn"><i style="left:12px;width:6px;top:-2px;bottom:-2px;transform:rotate(45deg)"></i><i style="left:12px;width:6px;top:-2px;bottom:-2px;transform:rotate(-45deg)"></i></div>
+          </div>
+          <div id="screen" class="abs">
+            <!-- LAYER B lives inside the screen so it inherits the frame's 3D -->
+            <div id="layerB" class="layer"><div id="photo" class="abs"></div></div>
+          </div>
+          <div id="bottombar" class="abs"></div>
+          <!-- LAYER C pieces that sit on the frame -->
+          <div id="ttl" class="abs">Bandar Udara</div>
+          <div id="uname" class="abs"></div>
+        </div>
+        <svg id="rosette" class="abs" viewBox="0 0 250 330"></svg>
+        <div id="badgeNum" class="abs">1</div>
+      </div>
+    </div>
+    <canvas id="confMid" class="conf" width="1080" height="1080"></canvas>
+  </div>
+  <!-- LAYER C (headline) -->
+  <div id="layerC" class="layer">
+    <div class="abs hl" id="hl"><span class="ex">AWARD WINNER</span><span class="st">AWARD WINNER</span><span class="fi">AWARD WINNER</span><span class="gl">AWARD WINNER</span></div>
+    <div id="script" class="abs">announcement</div>
+  </div>
+  <!-- foreground confetti (Layer A, front depth) -->
+  <canvas id="confFront" class="conf" width="1080" height="1080"></canvas>
+</div>
+<script>
+const Q = new URLSearchParams(location.search);
+const V = Q.get('v') || 'A';
+document.body.classList.add('v' + V);
+const WINNERS = [
+  { n: 1, name: 'Sultan Hasanuddin', img: 'sultan-hasanuddin.jpg' },
+  { n: 2, name: 'Mutiara Sis Al-Jufri', img: 'mutiara-sis-al-jufri.jpg' },
+  { n: 3, name: 'Syukuran Aminuddin Amir', img: 'syukuran-aminuddin-amir.jpg' },
+];
+if (V === 'C') document.querySelectorAll('.hl span').forEach(e => e.innerHTML = 'AWARD<br>WINNER');
+const W = WINNERS[(+Q.get('w') || 1) - 1];
+const $ = id => document.getElementById(id);
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+// ---- frame thickness: stacked slabs behind the face (real 3D depth) ----
+for (let i = 1; i <= 16; i++) { const s = document.createElement('div'); s.className = 'slab'; s.style.transform = `translateZ(${-i * 2.2}px)`; s.style.filter = `brightness(${1 - i * .018})`; $('slabs').appendChild(s); }
+
+// ---- rosette (SVG): scalloped purple disc, white medallion, two ribbon tails ----
+(function rosette() {
+  const pc = V === 'B' ? ['#2c4aa8', '#1F3375', '#0f1c49'] : ['#a46bff', '#7B2FF7', '#4e12b8'];
+  const cx = 125, cy = 125, R = 112, bumps = 26;
+  let d = '';
+  for (let i = 0; i <= bumps * 8; i++) { const a = i / (bumps * 8) * Math.PI * 2, r = R - 7 * (1 - Math.cos(a * bumps)) / 2; d += (i ? 'L' : 'M') + (cx + r * Math.cos(a)).toFixed(1) + ' ' + (cy + r * Math.sin(a)).toFixed(1); }
+  $('rosette').innerHTML = `
+  <defs>
+    <linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${pc[0]}"/><stop offset=".55" stop-color="${pc[1]}"/><stop offset="1" stop-color="${pc[2]}"/></linearGradient>
+    <linearGradient id="tail" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${pc[2]}"/><stop offset=".4" stop-color="${pc[1]}"/><stop offset="1" stop-color="${pc[0]}"/></linearGradient>
+    <radialGradient id="med" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".7" stop-color="#eeedf5"/><stop offset="1" stop-color="#c9c7d8"/></radialGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#14082e" flood-opacity=".45"/></filter>
+  </defs>
+  <g filter="url(#sh)">
+    <path d="M78 170 L40 318 L76 296 L104 326 L132 190 Z" fill="url(#tail)"/>
+    <path d="M172 170 L210 318 L174 296 L146 326 L118 190 Z" fill="url(#tail)"/>
+    <path d="${d}Z" fill="url(#rg)"/>
+    <circle cx="${cx}" cy="${cy}" r="${R - 18}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+    <circle cx="${cx}" cy="${cy}" r="${R - 28}" fill="url(#med)"/>
+    <circle cx="${cx}" cy="${cy}" r="${R - 38}" fill="none" stroke="#c4c2d4" stroke-width="2.5" stroke-dasharray="2 4"/>
+  </g>`;
+})();
+
+// ---- Layer B / C content ----
+$('photo').style.backgroundImage = `url(assets/img/${W.img})`;
+$('uname').textContent = W.name;
+$('badgeNum').textContent = W.n;
+if (W.name.length > 20) $('uname').style.fontSize = '34px';
+
+// ---- decor: triangles, plus clusters, spheres (Layer A) ----
+const DECOR = [];
+function addDecor(html, x, y, depth) { const d = document.createElement('div'); d.className = 'abs'; d.style.left = x + 'px'; d.style.top = y + 'px'; d.innerHTML = html; $('decor').appendChild(d); DECOR.push({ el: d, x, y, depth, ph: rnd() * 6.28 }); }
+const triSVG = '<svg width="34" height="96" viewBox="0 0 34 96" fill="none" stroke="#fff" stroke-width="3">' + [0, 32, 64].map(o => `<path d="M3 ${o + 4} H31 L17 ${o + 26} Z"/>`).join('') + '</svg>';
+const triUp = '<svg width="34" height="96" viewBox="0 0 34 96" fill="none" stroke="#fff" stroke-width="3">' + [0, 32, 64].map(o => `<path d="M3 ${o + 26} H31 L17 ${o + 4} Z"/>`).join('') + '</svg>';
+const plusV = '<svg width="40" height="120" viewBox="0 0 40 120" fill="#fff">' + [0, 40, 80].map(o => `<rect x="16" y="${o + 4}" width="8" height="32" rx="2"/><rect x="4" y="${o + 16}" width="32" height="8" rx="2"/>`).join('') + '</svg>';
+const plusH = '<svg width="120" height="40" viewBox="0 0 120 40" fill="#fff">' + [0, 40, 80].map(o => `<rect x="${o + 16}" y="4" width="8" height="32" rx="2"/><rect x="${o + 4}" y="16" width="32" height="8" rx="2"/>`).join('') + '</svg>';
+addDecor(triSVG, 950, 230, .5); addDecor(triUp, 70, 470, .5); addDecor(plusV, 960, 600, .6); addDecor(plusH, 60, 960, .6);
+addDecor('<div class="sphere" style="width:46px;height:46px"></div>', 860, 240, .8);
+addDecor('<div class="sphere" style="width:38px;height:38px"></div>', 190, 860, .9);
+addDecor('<div class="sphere" style="width:64px;height:64px;filter:blur(2px)"></div>', -14, 650, 1.2);
+
+// ---- confetti: gold foil ribbons drawn as twisting strips on 3 canvases (parallax depths) ----
+function makeConf(n, depth, size, blur) {
+  return Array.from({ length: n }, () => ({ x: rnd() * 1180 - 50, y: rnd() * 1180 - 50, len: size * (0.7 + rnd() * .7), w: size * (.22 + rnd() * .1),
+    rot: rnd() * 6.28, vr: (rnd() - .5) * 1.4, tw: rnd() * 6.28, vt: 1.5 + rnd() * 2.5, curl: (rnd() - .5) * 1.6,
+    vy: (14 + rnd() * 22) * depth, vx: (rnd() - .5) * 18, depth, blur }));
+}
+const CONF = { back: makeConf(26, .5, 26, 1.5), mid: makeConf(16, 1, 44, 0), front: makeConf(7, 1.8, 92, 5) };
+function drawRibbon(c, r, t) {
+  const y = ((r.y + r.vy * t) % 1240 + 1240) % 1240 - 80, x = r.x + r.vx * t + Math.sin(t * .8 + r.tw) * 14;
+  const rot = r.rot + r.vr * t, tw = r.tw + r.vt * t;
+  c.save(); c.translate(x, y); c.rotate(rot);
+  const seg = 14; const L = r.len;
+  // strip: centreline curls; half-width = w*cos(twist) gives the foil flip
+  const top = [], bot = [];
+  for (let i = 0; i <= seg; i++) {
+    const u = i / seg - .5, px = u * L, py = Math.sin(u * 3 + r.curl * 2) * L * .12 * r.curl;
+    const hw = r.w * .5 * Math.cos(tw + u * 2.2);
+    top.push([px, py - hw]); bot.push([px, py + hw]);
+  }
+  const shade = .5 + .5 * Math.cos(tw);
+  const g = c.createLinearGradient(-L / 2, 0, L / 2, 0);
+  g.addColorStop(0, `hsl(42,85%,${30 + 25 * shade}%)`); g.addColorStop(.45, `hsl(45,95%,${55 + 30 * shade}%)`); g.addColorStop(.55, `hsl(48,100%,${70 + 25 * shade}%)`); g.addColorStop(1, `hsl(38,80%,${28 + 20 * shade}%)`);
+  c.fillStyle = g; c.beginPath(); top.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); for (let i = bot.length - 1; i >= 0; i--) c.lineTo(bot[i][0], bot[i][1]); c.closePath(); c.fill();
+  c.restore();
+}
+function drawConf(id, list, t) {
+  const cv = $(id), c = cv.getContext('2d'); c.clearRect(0, 0, 1080, 1080);
+  c.filter = list[0].blur ? `blur(${list[0].blur}px)` : 'none';
+  list.forEach(r => drawRibbon(c, r, t));
+}
+
+// ---- frame pose (Layer A rig) ----
+const POSE = { A: { rx: 8, ry: -12, rz: -3, s: 1 }, B: { rx: 8, ry: -12, rz: -3, s: 1 }, C: { rx: 10, ry: -24, rz: -4, s: 1.05 } }[V];
+
+function renderFrame(t) {
+  const fy = Math.sin(t * 1.3) * 12, fr = Math.sin(t * .9) * 2;
+  $('rig').style.transform = `translateY(${fy}px) rotateX(${POSE.rx + Math.sin(t * .7) * 2}deg) rotateY(${POSE.ry + fr}deg) rotateZ(${POSE.rz}deg) scale(${POSE.s})`;
+  $('shadow').style.transform = `scale(${1 - fy / 120})`; $('shadow').style.opacity = .8 - fy / 60;
+  $('photo').style.transform = `translate(${-fr * 3}px,${-fy * .25}px) scale(1.06)`;   // inner parallax
+  DECOR.forEach(d => d.el.style.transform = `translateY(${Math.sin(t * 1.1 + d.ph) * 8 * d.depth}px)`);
+  $('rays').style.transform = `rotate(${t * 2}deg)`;
+  drawConf('confBack', CONF.back, t); drawConf('confMid', CONF.mid, t); drawConf('confFront', CONF.front, t);
+}
+window.__ready = (async () => {
+  await document.fonts.ready;
+  await new Promise(r => { const im = new Image(); im.onload = r; im.onerror = r; im.src = 'assets/img/' + W.img; });
+  window.renderFrame = renderFrame; renderFrame(+(Q.get('t') || 1.2)); return true;
+})();
+</script>
+</body>
+</html>
