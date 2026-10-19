@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Honorable Award Poster</title>
+<!--
+  Animated version of the user's "HONORABLE AWARD" poster (shots/reference.webp). 1080×1528, seamless 8 s loop.
+  Layers (separate DOM groups, back → front):
+    L1 #bgLayer     navy paper + blue grid + crumple lighting + dark torn shapes + back confetti
+    L2 #panelRig    torn photo panel (duotone airport photo, glitter edge, two teal tapes) — floats in 3D
+    L3 #typeLayer   headline, orange torn-paper labels, body text, footer
+    L4 #confFront   foreground torn-paper confetti (blurred, fastest)
+  Every motion is periodic in T (integer cycles per loop) so frame T == frame 0. renderFrame(t) is pure.
+-->
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<style>
+:root{--navy:#17198a;--navy2:#0f1170;--ink:#05061a;--orange:#F7A23B;--teal:#2EC7C4;--pink:#F5B9F1;--violet:#3B2C9E;--green:#36D27C}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1528px;overflow:hidden;background:#000}
+#stage{position:absolute;inset:0;overflow:hidden;font-family:Montserrat,sans-serif}
+.abs{position:absolute}
+.layer{position:absolute;inset:0}
+
+/* L1 background */
+#paper{inset:0;background:radial-gradient(75% 55% at 32% 38%,#1c1d8c 0%,#15167a 45%,#0b0c52 100%)}
+#grid{left:-92px;top:-92px;width:1264px;height:1712px;opacity:.42;
+  background-image:linear-gradient(rgba(80,105,255,.55) 1px,transparent 1px),linear-gradient(90deg,rgba(80,105,255,.55) 1px,transparent 1px);background-size:46px 46px}
+#crumple{inset:0;mix-blend-mode:overlay;opacity:.5}
+#crumple svg{width:100%;height:100%}
+.torn{background:var(--ink)}
+#tlShape{left:0;top:0;width:260px;height:1100px}
+#botShape{left:-20px;top:1240px;width:1120px;height:300px}
+#midFold{left:-40px;top:560px;width:760px;height:520px;background:linear-gradient(160deg,rgba(0,0,0,0) 30%,rgba(0,0,20,.35) 55%,rgba(0,0,0,0) 80%);filter:blur(10px)}
+
+/* L2 photo panel */
+#rigWrap{inset:0;perspective:1500px;perspective-origin:75% 30%}
+#panelRig{left:540px;top:-60px;width:620px;height:960px;transform-style:preserve-3d;transform-origin:60% 50%}
+#panel{inset:0;filter:drop-shadow(-14px 18px 26px rgba(0,0,20,.55))}
+#photoClip{inset:0;background:var(--pink)}
+#photo{left:-20px;top:-20px;width:660px;height:1000px;background:url(assets/img/sultan-hasanuddin.jpg) -387px -16px/1296px 972px no-repeat;filter:grayscale(1) contrast(1.25) brightness(1.22);mix-blend-mode:multiply}
+#photoShadow{inset:0;background:#4f3fb8;mix-blend-mode:lighten}
+#photoGrain{inset:0;opacity:.35;mix-blend-mode:overlay}
+#glitter{left:30px;top:893px;width:640px;height:34px}
+.tape{background:rgba(46,199,196,.93);box-shadow:0 6px 14px rgba(0,0,30,.35);transform-origin:50% 50%}
+.tape::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 40%,rgba(0,40,60,.15))}
+#tape1{left:95px;top:120px;width:290px;height:66px}
+#tape2{left:175px;top:950px;width:350px;height:76px}
+
+/* L3 type */
+#head{left:24px;top:342px;width:700px;text-align:center;color:#fff;font-family:Montserrat;font-style:italic;font-weight:900;font-size:94px;line-height:.98;letter-spacing:.005em;
+  text-shadow:0 4px 0 rgba(0,0,40,.25),0 14px 30px rgba(0,0,30,.45)}
+#head .sw{position:absolute;inset:0;background:linear-gradient(105deg,transparent 0 42%,rgba(160,240,255,.95) 50%,transparent 58%) no-repeat;background-size:700px 100%;-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none}
+.label{position:absolute}
+.label .under{position:absolute;background:#fff}
+.label .fill{position:absolute;inset:0;background:var(--orange)}
+.label .txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Permanent Marker';color:#fff;letter-spacing:.02em;white-space:nowrap;
+  text-shadow:0 2px 0 rgba(160,80,0,.35)}
+#lab1{left:181px;top:640px;width:306px;height:92px}
+#lab1 .txt{font-size:58px;padding-top:6px}
+#lab2{left:80px;top:790px;width:566px;height:100px}
+#lab2 .txt{font-size:51px;padding-top:6px}
+#body{left:64px;top:1012px;width:1000px;white-space:nowrap;color:#fff;font-weight:700;font-size:25.5px;line-height:1.38;letter-spacing:.003em}
+#body b{color:var(--green);font-weight:700}
+#foot{left:38px;top:1462px;color:#fff;font-weight:700;font-size:20px;letter-spacing:.005em}
+canvas.conf{position:absolute;inset:0}
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- L1 -->
+  <div id="bgLayer" class="layer">
+    <div id="paper" class="abs"></div>
+    <div id="grid" class="abs"></div>
+    <div id="midFold" class="abs"></div>
+    <div id="crumple" class="abs"><svg viewBox="0 0 1080 1528" preserveAspectRatio="none">
+      <filter id="cr" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.0045 0.006" numOctaves="4" seed="9" result="n"/>
+        <feDiffuseLighting in="n" lighting-color="#ffffff" surfaceScale="9" result="l"><feDistantLight azimuth="235" elevation="38"/></feDiffuseLighting>
+        <feColorMatrix in="l" type="matrix" values="0.9 0 0 0 0  0 0.9 0 0 0  0 0 1.1 0 0  0 0 0 1 0"/>
+      </filter>
+      <rect width="1080" height="1528" filter="url(#cr)"/>
+    </svg></div>
+    <div id="tlShape" class="abs torn"></div>
+    <canvas id="confBack" class="conf" width="1080" height="1528"></canvas>
+  </div>
+  <!-- L2 -->
+  <div id="rigWrap" class="abs">
+    <div id="panelRig" class="abs">
+      <div id="panel" class="abs">
+        <div id="photoClip" class="abs"><div id="photo" class="abs"></div><div id="photoShadow" class="abs"></div><canvas id="photoGrain" class="abs" width="310" height="480"></canvas></div>
+      </div>
+      <canvas id="glitter" class="abs" width="640" height="34"></canvas>
+      <div id="tape1" class="abs tape"></div>
+      <div id="tape2" class="abs tape"></div>
+    </div>
+  </div>
+  <div id="botShape" class="abs torn"></div>
+  <!-- L3 -->
+  <div id="typeLayer" class="layer">
+    <div id="head" class="abs">HONORABLE<br>AWARD<div class="sw">HONORABLE<br>AWARD</div></div>
+    <div id="lab1" class="label"><div class="under"></div><div class="fill"></div><div class="txt">BANDARA</div></div>
+    <div id="lab2" class="label"><div class="under"></div><div class="fill"></div><div class="txt">SULTAN HASANUDDIN</div></div>
+    <div id="body" class="abs">Penghargaan Sebagai Bandar Udara yang memberikan<br><b>kontribusi dan dukungan</b> terhadap implementasi RAN-GRK di<br>Wilayah Kerja Kantor Otoritas Bandar Udara Wilayah V Makassar</div>
+    <div id="foot" class="abs">Otoritas Bandar Udara Wilayah V Makassar</div>
+  </div>
+  <!-- L4 -->
+  <canvas id="confFront" class="conf" width="1080" height="1528"></canvas>
+</div>
+<script>
+const T = 8, TAU = Math.PI * 2, ph = t => TAU * t / T;
+const $ = id => document.getElementById(id);
+let seed = 21; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const W = 1080, H = 1528;
+
+// ---- torn edges: clip-path polygons with seeded jitter ----
+function jag(x0, y0, x1, y1, step, amp) {      // jagged polyline from (x0,y0) to (x1,y1)
+  const n = Math.max(2, Math.round(Math.hypot(x1 - x0, y1 - y0) / step)), pts = [];
+  const nx = -(y1 - y0), ny = x1 - x0, nl = Math.hypot(nx, ny);
+  for (let i = 0; i <= n; i++) { const u = i / n, j = (i === 0 || i === n) ? 0 : (rnd() - .5) * 2 * amp; pts.push([x0 + (x1 - x0) * u + nx / nl * j, y0 + (y1 - y0) * u + ny / nl * j]); }
+  return pts;
+}
+const poly = pts => 'polygon(' + pts.map(p => `${p[0].toFixed(1)}px ${p[1].toFixed(1)}px`).join(',') + ')';
+// photo panel: torn diagonal left edge + torn bottom, straight top/right (off-canvas)
+{
+  const pw = 620, phh = 960;
+  const left = jag(160, 0, 30, 900, 9, 7), bottom = jag(30, 900, pw, 905, 10, 6);
+  $('photoClip').style.clipPath = poly([[160, 0], [pw, 0], [pw, 905], ...bottom.slice().reverse().slice(0, -1), ...left.slice().reverse()]);
+}
+// orange labels: torn top/bottom on the fill, white rough strip peeking under the bottom
+function label(id) {
+  const el = $(id), w = el.offsetWidth, h = el.offsetHeight;
+  const top = jag(0, 4, w, 0, 14, 2.5), bot = jag(w, h - 6, 0, h - 2, 9, 5);
+  el.querySelector('.fill').style.clipPath = poly([...top, [w, h - 6], ...bot.slice(1)]);
+  const u = el.querySelector('.under'); u.style.left = '-6px'; u.style.top = (h - 26) + 'px'; u.style.width = (w + 10) + 'px'; u.style.height = '40px';
+  const ut = jag(0, 6, w + 10, 2, 18, 3), ub = jag(w + 10, 30, 0, 34, 7, 6);
+  u.style.clipPath = poly([...ut, ...ub]);
+}
+label('lab1'); label('lab2');
+// tapes: torn short ends
+for (const id of ['tape1', 'tape2']) {
+  const el = $(id), w = el.offsetWidth, h = el.offsetHeight;
+  el.style.clipPath = poly([[6, 0], [w - 4, 0], ...jag(w - 4, 0, w, h, 6, 5).slice(1), [6, h], ...jag(6, h, 0, 0, 6, 5).slice(1)]);
+}
+$('tape1').style.transform = 'rotate(-27deg)';
+// dark torn shapes
+$('tlShape').style.clipPath = poly([[0, 0], [190, 0], ...jag(190, 0, 120, 230, 14, 10).slice(1), ...jag(120, 230, 58, 620, 16, 12).slice(1), ...jag(58, 620, 18, 1100, 18, 10).slice(1), [0, 1100]]);
+$('botShape').style.clipPath = poly([[0, 300], ...jag(0, 100, 300, 70, 14, 10), ...jag(300, 70, 470, 120, 12, 8).slice(1), ...jag(470, 120, 760, 165, 14, 10).slice(1), ...jag(760, 165, 1120, 230, 16, 10).slice(1), [1120, 300]]);
+
+// photo grain (static, seeded)
+{ const c = $('photoGrain').getContext('2d'), im = c.createImageData(310, 480); for (let i = 0; i < im.data.length; i += 4) { const v = rnd() * 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = 255; } c.putImageData(im, 0, 0); }
+
+// ---- torn-paper confetti, integer cycles per loop ----
+const PAL = ['#F7A23B', '#2EC7C4', '#F5B9F1', '#ffffff', '#36D27C'];
+const WRAP = H + 160;
+function makeConf(n, falls, size, blur) {
+  return Array.from({ length: n }, () => {
+    const k = 5 + Math.floor(rnd() * 3), shape = [];
+    for (let i = 0; i < k; i++) { const a = i / k * TAU + rnd() * .5, r = size * (.55 + rnd() * .5); shape.push([Math.cos(a) * r * (1.3 + rnd() * .4), Math.sin(a) * r * .75]); }
+    return { x: rnd() * (W + 100) - 50, y: rnd() * WRAP, shape, col: PAL[Math.floor(rnd() * PAL.length)], rot: rnd() * TAU, spins: rnd() < .5 ? -1 : 1, flips: 1 + Math.floor(rnd() * 3), fph: rnd() * TAU,
+      falls, sway: 8 + rnd() * 18, sph: rnd() * TAU, blur };
+  });
+}
+const CONF = { back: makeConf(30, 1, 9, 1.2), front: makeConf(9, 2, 26, 4) };
+function drawConf(id, list, t, guard) {
+  const c = $(id).getContext('2d'); c.clearRect(0, 0, W, H); c.filter = list[0].blur ? `blur(${list[0].blur}px)` : 'none';
+  const p = ph(t);
+  for (const r of list) {
+    const y = ((r.y + r.falls * WRAP * t / T) % WRAP) - 80, x = r.x + Math.sin(p + r.sph) * r.sway;
+    const flip = Math.cos(r.flips * p + r.fph);
+    c.save(); c.translate(x, y); c.rotate(r.rot + r.spins * p); c.scale(1, Math.max(.12, Math.abs(flip)));
+    // foreground scraps fade while crossing the body-text band so the copy stays readable
+    const g = guard ? Math.min(1, Math.max(.08, (Math.abs(y - 1085) - 70) / 90)) : 1;
+    c.fillStyle = r.col; c.globalAlpha = (.55 + .45 * Math.abs(flip)) * g;
+    c.beginPath(); r.shape.forEach((q, i) => i ? c.lineTo(q[0], q[1]) : c.moveTo(q[0], q[1])); c.closePath(); c.fill();
+    c.restore();
+  }
+}
+// glitter strip under the photo (periodic shimmer: noise pattern indexed by frame-in-loop)
+const GL = Array.from({ length: 900 }, () => ({ x: rnd() * 640, y: rnd() * 34, s: 1 + rnd() * 2.2, c: ['#f5b9f1', '#8fa0ff', '#ffffff', '#c78bff', '#5b6cff'][Math.floor(rnd() * 5)], ph: rnd() * TAU, k: 1 + Math.floor(rnd() * 4) }));
+function drawGlitter(t) {
+  const c = $('glitter').getContext('2d'); c.clearRect(0, 0, 640, 34); c.fillStyle = 'rgba(70,60,190,.85)'; c.fillRect(0, 6, 640, 22);
+  const p = ph(t);
+  for (const g of GL) { c.globalAlpha = .35 + .65 * Math.max(0, Math.sin(g.k * p + g.ph)); c.fillStyle = g.c; c.fillRect(g.x, g.y, g.s, g.s); }
+  c.globalAlpha = 1;
+}
+const sweep = (t, a, d) => { const u = (t - a) / d; return u <= 0 || u >= 1 ? null : u; };
+
+function renderFrame(t) {
+  t = ((t % T) + T) % T; const p = ph(t);
+  // L1: grid drifts exactly one cell per loop
+  $('grid').style.transform = `translate(${t / T * 46}px,${t / T * 46}px)`;
+  $('tlShape').style.transform = `translateX(${Math.sin(p) * 4}px)`;
+  // L2: panel float in 3D
+  const fy = Math.sin(p * 2) * 11;
+  $('panelRig').style.transform = `translateY(${fy}px) rotateX(${Math.sin(p + 1) * 2.2}deg) rotateY(${-6 + Math.sin(p) * 3.2}deg) rotateZ(${-1.5 + Math.sin(p * 2 + .5) * .5}deg)`;
+  $('photo').style.transform = `translate(${-Math.sin(p) * 10}px,${-fy * .4}px) scale(1.04)`;
+  $('tape1').style.transform = `translateZ(30px) rotate(${-27 + Math.sin(p * 2 + 1.1) * 1.2}deg)`;
+  $('tape2').style.transform = `translateZ(30px) rotate(${6 + Math.sin(p * 2 + 2.3) * 1.0}deg)`;
+  drawGlitter(t);
+  // L3: type floats on its own phase (parallax against the panel)
+  $('head').style.transform = `perspective(1200px) translateY(${Math.sin(p * 2 + 1.6) * 6}px) rotateY(${Math.sin(p + 2) * 3}deg) rotateX(${Math.sin(p + .4) * 2}deg)`;
+  $('lab1').style.transform = `translateY(${Math.sin(p * 2 + 2.4) * 5}px) rotate(${-1.2 + Math.sin(p + .8) * .8}deg)`;
+  $('lab2').style.transform = `translateY(${Math.sin(p * 2 + 3.1) * 5}px) rotate(${-.6 + Math.sin(p + 1.9) * .7}deg)`;
+  const hs = sweep(t, 1.4, 1.2); document.querySelector('#head .sw').style.backgroundPosition = `${hs == null ? -2000 : -700 + hs * 1400}px 0`;
+  const ls = sweep(t, 4.2, .9), lsP = ls == null ? 0 : Math.sin(Math.PI * ls);
+  for (const id of ['lab1', 'lab2']) $(id).querySelector('.fill').style.filter = `brightness(${1 + .18 * lsP})`;
+  // confetti
+  drawConf('confBack', CONF.back, t); drawConf('confFront', CONF.front, t, true);
+}
+window.__ready = (async () => {
+  await document.fonts.ready;
+  await new Promise(r => { const im = new Image(); im.onload = r; im.onerror = r; im.src = 'assets/img/sultan-hasanuddin.jpg'; });
+  window.renderFrame = renderFrame; window.LOOP_T = T;
+  renderFrame(+(new URLSearchParams(location.search).get('t') || 0)); return true;
+})();
+</script>
+</body>
+</html>
