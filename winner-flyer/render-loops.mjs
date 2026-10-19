@@ -6,7 +6,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 const arg = (k, d) => { const a = process.argv.find(x => x.startsWith(`--${k}=`)); return a ? a.split('=')[1] : d; };
 const fps = +arg('fps', 30), winners = arg('w', '1,2,3').split(',').map(Number);
-const NAMES = { 1: 'winner-1-sultan-hasanuddin', 2: 'winner-2-mutiara-sis-al-jufri', 3: 'winner-3-syukuran-aminuddin-amir' };
+const NAMES = { 1: 'winner-1-mutiara-sis-al-jufri', 2: 'winner-2-syukuran-aminuddin-amir', 3: 'winner-3-haluoleo' };
 fs.mkdirSync('render', { recursive: true }); fs.mkdirSync('videos', { recursive: true });
 const browser = await chromium.launch({ args: ['--force-color-profile=srgb'] });
 await Promise.all(winners.map(async w => {

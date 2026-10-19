@@ -164,9 +164,9 @@ const TAU = Math.PI * 2;
 const ph = t => TAU * t / T; // loop phase
 document.body.classList.add('v' + V);
 const WINNERS = [
-  { n: 1, name: 'Sultan Hasanuddin', img: 'sultan-hasanuddin.jpg' },
-  { n: 2, name: 'Mutiara Sis Al-Jufri', img: 'mutiara-sis-al-jufri.jpg' },
-  { n: 3, name: 'Syukuran Aminuddin Amir', img: 'syukuran-aminuddin-amir.jpg' },
+  { n: 1, name: 'Mutiara Sis Al-Jufri', img: 'mutiara-sis-al-jufri.jpg' },
+  { n: 2, name: 'Syukuran Aminuddin Amir', img: 'syukuran-aminuddin-amir.jpg' },
+  { n: 3, name: 'Haluoleo', img: 'haluoleo.jpg' },
 ];
 if (V === 'C') document.querySelectorAll('.hl span').forEach(e => e.innerHTML = 'AWARD<br>WINNER');
 const W = WINNERS[(+Q.get('w') || 1) - 1];

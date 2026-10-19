@@ -65,3 +65,6 @@ Card cuts are 12 beats (6.04 s) apart, so every transition lands on a beat. Each
 ## v6: name size 120 px
 - Airport names are a fixed 120 px (NAME_SIZE). Long names are split onto lines in NOMS: SULTAN / HASANUDDIN, MUTIARA / SIS AL-JUFRI. SYUKURAN / AMINUDDIN / AMIR stays on 3 lines because "AMINUDDIN AMIR" is about 1,200 px at 120 px, wider than the 900 px column.
 - Photo panels narrowed 720→680 px and both halves of the V moved 40 px toward the centre, so HASANUDDIN clears the right edge on left-photo cards.
+
+## v7: nominee 2 replaced
+- Nominasi 2 is now UPBU ANDI JEMMA · MASAMBA (assets/img/andi-jemma.jpg, left-side photo, single line at 120 px). It replaces Bandar Udara Internasional Sultan Hasanuddin · Makassar. The outro row is updated to match.
