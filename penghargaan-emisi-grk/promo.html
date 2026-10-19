@@ -80,20 +80,20 @@ html,body{width:1920px;height:1080px;background:#000;overflow:hidden}
 /* nominee cards */
 .card{transform-origin:50% 72%}
 .card .persp{position:absolute;inset:0;perspective:1500px;perspective-origin:50% 46%}
-.card .panel{position:absolute;bottom:28%;width:720px;height:450px;overflow:hidden;
+.card .panel{position:absolute;bottom:28%;width:680px;height:450px;overflow:hidden;
   box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(240,210,150,.35);
   -webkit-box-reflect:below 2px linear-gradient(transparent 60%,rgba(0,0,0,.24))}
 .card .ph{position:absolute;inset:0;background:center/cover no-repeat}
 .card .shade{position:absolute;inset:0}
-.card.R .panel{left:1046px;transform-origin:0 100%}
+.card.R .panel{left:1086px;transform-origin:0 100%}
 .card.L .panel{left:154px;transform-origin:100% 100%}
 .card.R .panel::after,.card.L .panel::after{content:"";position:absolute;top:0;bottom:0;width:4px;background:rgba(120,250,220,.98);box-shadow:0 0 18px 6px rgba(50,225,195,.6)}
 .card.R .panel::after{left:0} .card.L .panel::after{right:0}
 .card.R .shade{background:linear-gradient(100deg,rgba(255,240,210,.16) 0%,transparent 28%,transparent 70%,rgba(5,4,18,.5) 100%)}
 .card.L .shade{background:linear-gradient(260deg,rgba(255,240,210,.16) 0%,transparent 28%,transparent 70%,rgba(5,4,18,.5) 100%)}
 .card .txt{position:absolute;bottom:28%;width:900px}
-.card.R .txt{left:126px;text-align:right;transform-origin:100% 100%}
-.card.L .txt{left:894px;text-align:left;transform-origin:0 100%}
+.card.R .txt{left:166px;text-align:right;transform-origin:100% 100%}
+.card.L .txt{left:854px;text-align:left;transform-origin:0 100%}
 .card .t1{font-weight:800;font-size:52px;letter-spacing:.1em;margin-bottom:14px}
 .card .t2{font-weight:800;font-size:38px;letter-spacing:.03em;line-height:1.14}
 .card .t2.last{margin-bottom:14px}
@@ -219,21 +219,15 @@ const DUST = Array.from({ length: 120 }, (_, i) => ({ teal: i % 3 === 0, x: rnd(
 const BOKEH = Array.from({ length: 10 }, () => ({ x: rnd() * 1920, y: rnd() * 640, r: 30 + rnd() * 80, vx: 2 + rnd() * 6, a: .05 + rnd() * .06 }));
 
 // lay out: per-letter gold alignment + auto-fit card names
+// every airport name uses one fixed size; long names are pre-split into lines in NOMS so each line fits the 900 px column
+const NAME_SIZE = 120;
 function fitNames() {
   for (const c of CARDS) {
-    let size = 176;
-    for (const l of c.t3) l.line.style.fontSize = size + 'px';
+    for (const l of c.t3) l.line.style.fontSize = NAME_SIZE + 'px';
     const maxW = Math.max(...c.t3.map(l => l.line.scrollWidth));
-    size = Math.min(176, Math.floor(size * 820 / maxW));
-    // height budget: whole block must stay below ~y=150
-    const budget = 1080 * .72 - 150 - (c.t3.length ? 0 : 0);
-    for (const l of c.t3) l.line.style.fontSize = size + 'px';
-    const h = c.txt.offsetHeight;
-    if (h > budget) { size = Math.floor(size * budget / h); for (const l of c.t3) l.line.style.fontSize = size + 'px'; }
-    c.nameSize = size;
+    if (maxW > c.txt.clientWidth) console.error(`name line too wide for column: ${c.d.l2.join(' / ')} (${maxW}px)`);
+    c.nameSize = NAME_SIZE;
   }
-  const uni = Math.min(...CARDS.map(c => c.nameSize));
-  for (const c of CARDS) { for (const l of c.t3) l.line.style.fontSize = uni + 'px'; c.nameSize = uni; }
 }
 function alignGold() {
   for (const L of LINES) {

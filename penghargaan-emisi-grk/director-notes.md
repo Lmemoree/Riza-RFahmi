@@ -61,3 +61,7 @@ Card cuts are 12 beats (6.04 s) apart, so every transition lands on a beat. Each
 ## v5: uniform names + seamless pan
 - All airport names locked to one size (the largest that fits the longest name in the 820 px column; currently 112 px).
 - Nominee transition is one continuous 1.0 s camera pan (starts 0.42 s before the beat, ease-in-out sine). Both sets ride the same curve as one strip (translateX 1920 px, yaw 18°). The separate 90 px settle move is removed. Blur peaks at 30 px. Text pop starts at +0.12 s, while the pan is still easing out.
+
+## v6: name size 120 px
+- Airport names are a fixed 120 px (NAME_SIZE). Long names are split onto lines in NOMS: SULTAN / HASANUDDIN, MUTIARA / SIS AL-JUFRI. SYUKURAN / AMINUDDIN / AMIR stays on 3 lines because "AMINUDDIN AMIR" is about 1,200 px at 120 px, wider than the 900 px column.
+- Photo panels narrowed 720→680 px and both halves of the V moved 40 px toward the centre, so HASANUDDIN clears the right edge on left-photo cards.
