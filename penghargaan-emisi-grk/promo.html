@@ -94,12 +94,11 @@ html,body{width:1920px;height:1080px;background:#000;overflow:hidden}
 .card .txt{position:absolute;bottom:28%;width:900px}
 .card.R .txt{left:126px;text-align:right;transform-origin:100% 100%}
 .card.L .txt{left:894px;text-align:left;transform-origin:0 100%}
-.card .t0{font-weight:800;font-size:22px;letter-spacing:.2em;margin-bottom:18px}
-.card .t1{font-weight:800;font-size:38px;letter-spacing:.08em;margin-bottom:10px}
-.card .t2{font-weight:800;font-size:30px;letter-spacing:.03em;line-height:1.16}
-.card .t2.last{margin-bottom:8px}
+.card .t1{font-weight:800;font-size:52px;letter-spacing:.1em;margin-bottom:14px}
+.card .t2{font-weight:800;font-size:38px;letter-spacing:.03em;line-height:1.14}
+.card .t2.last{margin-bottom:14px}
 .card .t3{font-weight:900;line-height:.92;letter-spacing:-.02em}
-.card .t4{font-weight:800;font-size:44px;letter-spacing:.34em;margin-top:12px}
+.card .t4{font-weight:800;font-size:54px;letter-spacing:.34em;margin-top:16px}
 .card.R .t4{margin-right:-.34em}
 </style>
 </head>
@@ -197,12 +196,11 @@ const CARDS = NOMS.map((d, i) => {
   const ph = el('div', 'ph', panel); ph.style.backgroundImage = `url(assets/img/${d.img})`;
   el('div', 'shade', panel);
   const txt = el('div', 'txt reflect', persp);
-  const t0 = goldLine(txt, 't0', 'PENGHARGAAN EMISI GAS RUMAH KACA');
   const t1 = goldLine(txt, 't1', 'NOMINASI ' + (i + 1));
   const t2 = d.l1.map((s, k) => goldLine(txt, 't2' + (k === d.l1.length - 1 ? ' last' : ''), s));
   const t3 = d.l2.map(s => goldLine(txt, 't3', s));
   const t4 = goldLine(txt, 't4', d.city);
-  return { d, root, panel, ph, txt, t0, t1, t2, t3, t4, start: CUTS[i], end: CUTS[i + 1] };
+  return { d, root, panel, ph, txt, t1, t2, t3, t4, start: CUTS[i], end: CUTS[i + 1] };
 });
 
 // ghost strips + beams
@@ -223,10 +221,10 @@ const BOKEH = Array.from({ length: 10 }, () => ({ x: rnd() * 1920, y: rnd() * 64
 // lay out: per-letter gold alignment + auto-fit card names
 function fitNames() {
   for (const c of CARDS) {
-    let size = 150;
+    let size = 176;
     for (const l of c.t3) l.line.style.fontSize = size + 'px';
     const maxW = Math.max(...c.t3.map(l => l.line.scrollWidth));
-    size = Math.min(150, Math.floor(size * 780 / maxW));
+    size = Math.min(176, Math.floor(size * 820 / maxW));
     // height budget: whole block must stay below ~y=150
     const budget = 1080 * .72 - 150 - (c.t3.length ? 0 : 0);
     for (const l of c.t3) l.line.style.fontSize = size + 'px';
@@ -395,12 +393,11 @@ function renderFrame(t) {
     c.panel.style.transform = `rotateY(${dir * vAng}deg)`;
     c.txt.style.transform = `rotateY(${-dir * vAng}deg)`;
     c.ph.style.transform = `scale(${lerp(1.04, 1.12, prog(u, -.3, D + .6))}) translateX(${dir * -u * 4}px)`;
-    letters(c.t0, t, c.start + .30, .012, 'pop');
-    letters(c.t1, t, c.start + .55, .03, 'pop');
-    c.t2.forEach((L, k) => letters(L, t, c.start + .80 + k * .12, .014, 'pop'));
-    c.t3.forEach((L, k) => letters(L, t, c.start + 1.05 + k * .28, .045, 'pop'));
-    letters(c.t4, t, c.start + 1.75 + (c.t3.length - 1) * .28, .05, 'pop');
-    sweepMany([c.t0, c.t1, ...c.t2, ...c.t3, c.t4], t, c.start + 2.6 + (c.t3.length - 1) * .2, 1.25);
+    letters(c.t1, t, c.start + .32, .03, 'pop');
+    c.t2.forEach((L, k) => letters(L, t, c.start + .58 + k * .12, .014, 'pop'));
+    c.t3.forEach((L, k) => letters(L, t, c.start + .90 + k * .28, .045, 'pop'));
+    letters(c.t4, t, c.start + 1.60 + (c.t3.length - 1) * .28, .05, 'pop');
+    sweepMany([c.t1, ...c.t2, ...c.t3, c.t4], t, c.start + 2.5 + (c.t3.length - 1) * .2, 1.25);
   });
 
   // ---- OUTRO ----

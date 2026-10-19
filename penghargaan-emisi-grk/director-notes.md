@@ -53,3 +53,7 @@ Card cuts are 12 beats (6.04 s) apart, so every transition lands on a beat. Each
 - **Outro:** the same unfold. The lockup appears on the 38.66 s hit and unfolds on the 40.00 s hit, the nominee row fades in from 41.0 s, shimmer at 42.4 s, final flash at 45.3 s, fade to black by 46.9 s.
 - **Transitions:** the 3D swing and camera roll are removed. Back to the sideways whip pan (translateX ±1600, rotateY ±26°, horizontal motion blur peaking on the beat).
 - **Look:** A (V-spread cards). Darker navy background (#0A1736, with #1F3375 as the centre glow). More teal: teal floor haze, teal thin beams, teal ends on the horizon line, a teal halo and top rim on the gold type, a brighter teal edge on the panels, and teal dust particles.
+
+## v4: card text
+- Removed the "PENGHARGAAN EMISI GAS RUMAH KACA" line from the nominee cards.
+- Enlarged the rest: NOMINASI 38→52 px, line 1 30→38 px, city 44→54 px, airport names auto-fit up to 176 px in an 820 px column (currently 112–151 px). Pop-in starts at +0.32 s.
