@@ -232,6 +232,8 @@ function fitNames() {
     if (h > budget) { size = Math.floor(size * budget / h); for (const l of c.t3) l.line.style.fontSize = size + 'px'; }
     c.nameSize = size;
   }
+  const uni = Math.min(...CARDS.map(c => c.nameSize));
+  for (const c of CARDS) { for (const l of c.t3) l.line.style.fontSize = uni + 'px'; c.nameSize = uni; }
 }
 function alignGold() {
   for (const L of LINES) {
@@ -291,8 +293,10 @@ function unfold(S, t, tAppear, tUnfold, tWarm) {
   S.st.style.filter = w >= 1 ? 'none' : `grayscale(${1 - w}) brightness(${lerp(.6, 1, w)}) contrast(${lerp(1.15, 1, w)})`;
 }
 // whip transition around a cut: s∈[0,1], peak blur on the beat
-const WHIP = .3;
-function whipS(t, c) { return eInOutCubic(prog(t, c - WHIP, 2 * WHIP)); }
+// one continuous camera pan per cut: outgoing and incoming sets move as a single strip on the same curve,
+// fastest just after the beat, then a long ease-out (no second settle move)
+const PAN_PRE = .42, PAN_DUR = 1.0, PAN_POST = PAN_DUR - PAN_PRE, PAN_W = 1920, PAN_YAW = 18;
+function whipS(t, c) { return eInOutSine(prog(t, c - PAN_PRE, PAN_DUR)); }
 
 let lastBlur = -1;
 function setBlur(px) {
@@ -308,10 +312,10 @@ function renderFrame(t) {
   let seg = -1; for (let i = 0; i < CUTS.length; i++) if (t >= CUTS[i]) seg = i;
   // nearest cut for whip
   let blur = 0, bgShift = 0;
-  CUTS.forEach((c, i) => { const s = whipS(t, c); bgShift += s; if (s > 0 && s < 1) blur = Math.max(blur, Math.sin(Math.PI * s) * (i < 5 ? 40 : 26)); });
+  CUTS.forEach((c, i) => { const s = whipS(t, c); bgShift += s; if (s > 0 && s < 1) blur = Math.max(blur, Math.sin(Math.PI * s) * (i < 5 ? 30 : 20)); });
 
   // ---- background ----
-  const hz = t < CUTS[0] - WHIP ? .68 : t < CUTS[0] + WHIP ? lerp(.68, .72, whipS(t, CUTS[0])) : .72;
+  const hz = lerp(.68, .72, whipS(t, CUTS[0]));
   const hzPx = 1080 * hz;
   $('floor').style.top = hzPx + 'px';
   $('tealHaze').style.top = (hzPx - 300) + 'px';
@@ -363,12 +367,12 @@ function renderFrame(t) {
   setBlur(blur);
 
   // ---- TITLE ----
-  const tv = t < CUTS[0] + WHIP;
+  const tv = t < CUTS[0] + PAN_POST;
   $('title').style.display = tv ? 'block' : 'none';
   if (tv) {
     const s = whipS(t, CUTS[0]);
     const push = lerp(1, 1.07, eInOutSine(prog(t, 0, CUTS[0])));
-    $('title').style.transform = `perspective(1600px) translateX(${-s * 1600}px) rotateY(${s * 26}deg) scale(${push})`;
+    $('title').style.transform = `perspective(1600px) translateX(${-s * PAN_W}px) rotateY(${s * PAN_YAW}deg) scale(${push})`;
     TITLE.st.style.bottom = (1080 - hzPx) + 'px';
     unfold(TITLE, t, INTRO.appear, INTRO.unfold, INTRO.unfold - .1);
     sweepMany([TITLE.L.p3a, TITLE.L.p3b], t, INTRO.shimmer, 1.3);
@@ -377,14 +381,13 @@ function renderFrame(t) {
 
   // ---- CARDS ----
   CARDS.forEach((c, i) => {
-    const vis = t >= c.start - WHIP && t < c.end + WHIP;
+    const vis = t >= c.start - PAN_PRE && t < c.end + PAN_POST;
     c.root.style.display = vis ? 'block' : 'none';
     if (!vis) return;
     const u = t - c.start, D = c.end - c.start;
     const sIn = whipS(t, c.start), sOut = whipS(t, c.end);
-    const settle = eOutExpo(prog(u, WHIP, 1.4));
-    const x = (1 - sIn) * 1600 + (1 - settle) * 90 - sOut * 1600;
-    const ry = -(1 - sIn) * 26 + sOut * 26;
+    const x = (1 - sIn) * PAN_W - sOut * PAN_W;
+    const ry = -(1 - sIn) * PAN_YAW + sOut * PAN_YAW;
     const dir = c.d.side === 'R' ? -1 : 1;
     const dolly = lerp(1, 1.035, eInOutSine(prog(u, 0, D)));
     c.root.style.transform = `perspective(1600px) translateX(${x}px) rotateY(${ry}deg) scale(${dolly})`;
@@ -393,22 +396,22 @@ function renderFrame(t) {
     c.panel.style.transform = `rotateY(${dir * vAng}deg)`;
     c.txt.style.transform = `rotateY(${-dir * vAng}deg)`;
     c.ph.style.transform = `scale(${lerp(1.04, 1.12, prog(u, -.3, D + .6))}) translateX(${dir * -u * 4}px)`;
-    letters(c.t1, t, c.start + .32, .03, 'pop');
-    c.t2.forEach((L, k) => letters(L, t, c.start + .58 + k * .12, .014, 'pop'));
-    c.t3.forEach((L, k) => letters(L, t, c.start + .90 + k * .28, .045, 'pop'));
-    letters(c.t4, t, c.start + 1.60 + (c.t3.length - 1) * .28, .05, 'pop');
-    sweepMany([c.t1, ...c.t2, ...c.t3, c.t4], t, c.start + 2.5 + (c.t3.length - 1) * .2, 1.25);
+    letters(c.t1, t, c.start + .12, .03, 'pop');
+    c.t2.forEach((L, k) => letters(L, t, c.start + .36 + k * .1, .014, 'pop'));
+    c.t3.forEach((L, k) => letters(L, t, c.start + .62 + k * .25, .045, 'pop'));
+    letters(c.t4, t, c.start + 1.25 + (c.t3.length - 1) * .25, .05, 'pop');
+    sweepMany([c.t1, ...c.t2, ...c.t3, c.t4], t, c.start + 2.3 + (c.t3.length - 1) * .2, 1.25);
   });
 
   // ---- OUTRO ----
-  const ov = t >= CUTS[5] - WHIP;
+  const ov = t >= CUTS[5] - PAN_PRE;
   $('outro').style.display = ov ? 'block' : 'none';
   if (ov) {
     const w = t - CUTS[5];
-    const pull = eOutExpo(prog(w, -WHIP, 1.5));
+    const pull = eOutExpo(prog(w, -PAN_PRE, 1.6));
     const push = lerp(1, 1.05, eInOutSine(prog(w, 1.2, END - CUTS[5] - 1.2)));
     $('outro').style.transform = `perspective(1600px) translateX(${(1 - pull) * 700}px) rotateY(${-(1 - pull) * 18}deg) scale(${lerp(1.22, 1, pull) * push})`;
-    $('outro').style.opacity = clamp(prog(w, -WHIP, .35));
+    $('outro').style.opacity = clamp(prog(w, -PAN_PRE, .45));
     OUTRO.st.style.bottom = (1080 - hzPx) + 'px';
     unfold(OUTRO, t, CUTS[5] - .1, OUTRO_HITS.unfold, OUTRO_HITS.unfold - .15);
     OUTRO.row.items.forEach((it, j) => {

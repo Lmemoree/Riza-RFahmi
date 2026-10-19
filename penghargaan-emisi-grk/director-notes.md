@@ -57,3 +57,7 @@ Card cuts are 12 beats (6.04 s) apart, so every transition lands on a beat. Each
 ## v4: card text
 - Removed the "PENGHARGAAN EMISI GAS RUMAH KACA" line from the nominee cards.
 - Enlarged the rest: NOMINASI 38→52 px, line 1 30→38 px, city 44→54 px, airport names auto-fit up to 176 px in an 820 px column (currently 112–151 px). Pop-in starts at +0.32 s.
+
+## v5: uniform names + seamless pan
+- All airport names locked to one size (the largest that fits the longest name in the 820 px column; currently 112 px).
+- Nominee transition is one continuous 1.0 s camera pan (starts 0.42 s before the beat, ease-in-out sine). Both sets ride the same curve as one strip (translateX 1920 px, yaw 18°). The separate 90 px settle move is removed. Blur peaks at 30 px. Text pop starts at +0.12 s, while the pan is still easing out.
